@@ -1,0 +1,18 @@
+step 1:
+    query：{query}
+    写一首诗
+step 2:
+    conditions:
+        conflag=llm_tagger({1},['田园诗','边塞诗','其它'])
+    if conflag=='田园诗':
+        goto  3
+    elif  conflag=='边塞诗':
+        goto  4
+    else:
+        goto  5
+step 3:
+    exit(msg="写了一首田园诗")
+step 4:
+    exit(msg="写了一首边塞诗")
+step 5:
+    exit(msg="写了一首其它类型的诗")

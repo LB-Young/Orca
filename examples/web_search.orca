@@ -1,0 +1,21 @@
+step 1:
+    以{query}为中心话题，生成3个话题，结果以列表返回。
+
+step 2:
+    tool_call('web_search', texts={1})
+
+step 3:
+    if len({2})>0:
+        goto 4
+    else:
+        goto 6
+
+step 4:
+    for each {text} in {2}:
+        对{text}进行总结
+
+step 5:
+    写作素材为{3}，针对{query}写一篇300字数的文章
+
+step 6:
+    exit(msg="web_search_tool调用失败")
