@@ -9,8 +9,6 @@
 ```
 请根据以下内容生成一个json格式的内容：$variable ->result(json)
 
-p: 请根据以下内容生成一个json格式的内容：$variable ->result(json)
-
 
 @llm_call(
     query="请根据以下内容生成一个json格式的内容：$variable。使用chatglm3-130b模型。",
