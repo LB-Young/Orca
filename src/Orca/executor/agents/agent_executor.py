@@ -43,5 +43,5 @@ class AgentExecutor:
             return result
 
     async def agent_prompt_execute(self, agent_instruct):
-        result = await self.leader.execute(agent_instruct)
+        result = await self.leader.agent_run(agent_instruct)
         return result

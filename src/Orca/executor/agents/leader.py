@@ -44,11 +44,7 @@ class Leader:
 当前的问题为：{prompt}\n\n已经完成的步骤为：“{finished_steps}”\n\n请指定下一步由谁作答以及需要完成的内容。
 """
 
-    async def agent_run(self, agent_name, agent_job):
-
-        pass
-
-    async def execute(self, qeury):
+    async def agent_run(self, qeury):
         all_result = ""
         finished_flag = "start"
         finished_steps = []
@@ -68,8 +64,11 @@ class Leader:
                 agent_name = match.group(1)
                 agent_job = match.group(2)
                 if agent_name != "None":
-                    agent_obj = self.agents[agent_name]
-                    result = await agent_obj.execute(agent_job)
+                    if agent_name != "self":
+                        agent_obj = self.agents[agent_name]
+                        result = await agent_obj.execute(agent_job)
+                    else:
+                        result = await self.execute(agent_job)
                     # print("agent_result:", result)
                     all_result += result + "\n\n"
                     finished_steps.append(f"{agent_name}已经完成了{agent_job},结果为{result}")
@@ -79,3 +78,7 @@ class Leader:
             else:
                 continue
         return all_result
+    
+    async def execute(self, qeury):
+        result = await self.llm_client.generate_answer([f'{"role": "user", "content": qeury}'])
+        return result

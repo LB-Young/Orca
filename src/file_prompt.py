@@ -33,7 +33,8 @@ config = {
     "together_api_key": together_api_key,
     "together_llm_model_name": together_llm_model_name
 }
-orca_prompt_path = r"F:\Cmodels\GIT_Orca\Orca\examples\agent_prompt.orca"
+orca_prompt_path = r"F:\Cmodels\Orca_git\Orca\examples\agent_prompt.orca"
+# orca_prompt_path = r"F:\Cmodels\Orca_git\Orca\examples\agent_call.orca"
 with open(orca_prompt_path, "r", encoding="utf-8") as f:
     content = f.read()
 
