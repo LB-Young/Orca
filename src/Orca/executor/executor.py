@@ -1,81 +1,179 @@
-from Orca.executor.statements.statement_analysis import StatementsAnalysis
+import re
+from Orca.analysis.prompt_analysis import PromptAnalysis
+from Orca.executor.statements.branch import BranchBlook
+from Orca.executor.statements.circular import CircularBlock
+from Orca.executor.actions.llm_call import LLMCall
+from Orca.executor.actions.function_call import FunctionCall
+
 
 class Executor:
-    def __init__(self, variable_tool_pool=None, config=None, memories=None, debug_infos=None):
-        self.memories = memories
-        self.variabletoolpool = variable_tool_pool
-        self.debug_infos = debug_infos
-        self.config = config
-        # sentetnce analysis 语义分析
-        self.statement_analysis = StatementsAnalysis(variable_tool_pool=self.variabletoolpool, config=self.config, memories=self.memories, debug_infos=self.debug_infos)
+    def __init__(self, all_states=None):
+        pass
 
-    async def execute(self, analysis_result, start_step=None, mode="c"):
-        # Execute the command   
+    async def execute(self, prompt, all_states=None, mode="c"):
+        # parser prompt
+        self.prompt_analysis = PromptAnalysis()
+        prompt_segments = await self.prompt_analysis.analyze(prompt, all_states=all_states)
+        print("prompt解析后的列表:", prompt_segments)
+        print("-"*100)
+        # Execute the commandx
         # Return the result
-        step_num = 0
-        next_step_name = start_step
-        # 如果非debug输入，则start_step为None，则从第一个步骤开始执行，否则从start_step开始执行
-        if next_step_name is None:
-            next_step_index = 0
-        else:
-            next_step_index = list(analysis_result.keys()).index(start_step)
-        while step_num < 20:
-            step_name = list(analysis_result.keys())[next_step_index]
-            print(f"********************step_name: {step_name}********************")
-            step_content = analysis_result[step_name]['content']
-            step_exit = analysis_result[step_name]['exit']
-            step_breakpoint = analysis_result[step_name]['breakpoint']
-            if step_breakpoint:
-                step_content = step_content.replace("(bp)", "")
-            step_results, next_step_flag= await self.handle_step_content(step_content)
-            print(f"step_results: {step_results}")
+        for prompt_segment in prompt_segments:
+            all_states = await self.segment_execute(prompt_segment=prompt_segment, all_states=all_states)
+        return all_states
 
-            if next_step_flag in list(analysis_result.keys()):
-                next_step_name = next_step_flag
-            else:
-                if next_step_index < len(list(analysis_result.keys()))-1:
-                    next_step_name = list(analysis_result.keys())[next_step_index+1]
-                    next_step_index += 1
+    async def segment_execute(self, prompt_segment, all_states=None):
+        """
+        prompt_segment:type，content，result_variable，all_next_prompt；
+        ["prompt"、"function"、"FOR"、"IF"、"exit"、"bp"、"agent_init"、"function_init"]
+        """
+        pure_prompt, res_variable_name, variable_type, add_type = await self.prompt_segment_analysis(prompt_segment)
+        print("单句prompt分析结果：")
+        print(pure_prompt, res_variable_name, variable_type, add_type)
+        if prompt_segment['type'] == "prompt":
+            if "default_agent" in all_states['tools_agents_pool'].get_agents().keys():
+                # 应该调用默认agent
+                self.function_call = FunctionCall()
+                pure_prompt = "@default_agent(" + pure_prompt + ")"
+                analysis_result = await self.function_call.analysis(pure_prompt, all_states)
+                if analysis_result['executed']:
+                    result = analysis_result['result']
+                    all_states = analysis_result['all_states']
                 else:
-                    next_step_name = None
+                    self.llm_call = LLMCall()
+                    analysis_result = await self.llm_call.analysis(pure_prompt, all_states=all_states)
+                    if analysis_result['executed']:
+                        all_states = analysis_result['all_states']
+                        result = analysis_result['result']
+                    else:
+                        pass
+            else:
+                self.llm_call = LLMCall()
+                analysis_result = await self.llm_call.analysis(pure_prompt, all_states=all_states)
+                if analysis_result['executed']:
+                    all_states = analysis_result['all_states']
+                    result = analysis_result['result']
+                else:
+                    pass
+        elif prompt_segment['type'] == "function":
+            # 直接调用函数
+            self.function_call = FunctionCall()
+            analysis_result = await self.function_call.analysis(pure_prompt, all_states)
+            if analysis_result['executed']:
+                result = analysis_result['result']
+                all_states = analysis_result['all_states']
+            else:
+                if analysis_result['analysis_result']['function_info']['type'] == "workflow_init":
+                    all_states = await self.execute(analysis_result['analysis_result']['function_info']['function_content'], all_states=all_states)
+                    result = all_states['variables_pool'].get_variable('final_result')
+                else:
+                    raise Exception("Function type not supported")
+        elif prompt_segment['type'] == "agent_init":
+            # 初始化agent
+            pass
+        elif prompt_segment['type'] == "function_init":
+            pass
+        elif prompt_segment['type'] == "FOR":
+            # for循环处理逻辑
+            self.circular_blook = CircularBlock()
 
-            # 记录memory and debuginfo
-            step_memory_infos = {"name":step_name,
-                                    "output": step_results}
-            self.memories.add_memory(step_memory_infos)
-            step_debug_info = step_memory_infos
-            step_debug_info['input'] = step_content
-            step_debug_info['next_step'] = next_step_name
-            step_debug_info['variables'] = self.variabletoolpool.get_variables()
-            step_debug_info['tools'] = self.variabletoolpool.get_tools()
-            step_debug_info['agents'] = self.variabletoolpool.get_agents()
-            self.debug_infos.add_debug_info(step_debug_info)
+            analysis_result = await self.circular_blook.analysis(pure_prompt, all_states)
+            if analysis_result['executed']:
+                result = analysis_result['result']
+                all_states = analysis_result['all_states']
+            else:
+                iter_v = analysis_result['analysis_result']['iter_v']
+                iter_list = analysis_result['analysis_result']['iter_list']
+                for_content = analysis_result['analysis_result']['for_content']
+                print("提取后的for语句执行体：",for_content)
+                for item in iter_list:
+                    all_states['variables_pool'].add_variable(iter_v.replace("$","").strip(), item)
+                    all_states = await self.execute(for_content, all_states=all_states)
+                all_states['variables_pool'].remove_variable(iter_v.replace("$","").strip())
+                result = all_states['variables_pool'].get_variables('final_result')
+        elif prompt_segment['type'] == "IF":
+            # 分支结构处理
+            self.branch_blook = BranchBlook()
+            result = await self.branch_blook.analysis(pure_prompt, all_states)
+            if result['executed']:
+                result = result['result']
+                all_states = result['all_states']
+            else:
+                all_states = await self.execute(result['analysis_result']['if_content'], all_states=all_states)
+                result = all_states['variables_pool'].get_variables('final_result')
+        elif prompt_segment['type'] == "exit":
+            result = prompt_segment['content']
+            return
+        elif prompt_segment['type'] == "bp":
+            result = prompt_segment['content']
 
-            # 中途退出或断点
-            if step_exit or step_breakpoint or next_step_name is None or mode == "n":
-                res_dict = {"output":step_results,
-                            "msg":step_exit,
-                            "debug_infos":self.debug_infos.get_debug_info()}
-                if (step_breakpoint or mode == "n") and next_step_name is not None:
-                    breakpoint_infos = {}
-                    breakpoint_infos['variables'] = self.variabletoolpool.get_variables()
-                    breakpoint_infos['tools'] = self.variabletoolpool.get_tools()
-                    breakpoint_infos['agents'] = self.variabletoolpool.get_agents()
-                    breakpoint_infos['memories'] = self.memories.get_memory()
-                    breakpoint_infos['debug_infos'] = self.debug_infos.get_debug_info()
-                    breakpoint_infos['next_step_name'] = next_step_name
-                    breakpoint_infos["analysis_result"] = analysis_result
-                    breakpoint_infos['config'] = self.config.get_config()
-                    res_dict['breakpoint_infos'] = breakpoint_infos
-                    del res_dict['debug_infos']
-                return res_dict
+        if res_variable_name is not None:
+            if add_type == "->":
+                all_states['variables_pool'].add_variable(res_variable_name,result,variable_type)
+            elif add_type == "->>":
+                all_states['variables_pool'].add_variable_value(res_variable_name,result,variable_type)
+            all_states['variables_pool'].add_variable("final_result", result, variable_type)
+        print("当前步骤结果:", str(result)[:100])
+        return all_states
+    
+    async def prompt_segment_analysis(self, prompt_segment):
+        """
+        分析提示片段,提取执行指令、变量名、变量类型等信息
+        """
+        # 匹配赋值指令的正则表达式
+        content = prompt_segment['content']
+        print("待分析的单句prompt:",content)
+        if content.strip().startswith("FOR") or content.strip().startswith("IF"):
+            prompt_variable = content.rsplit("END", 1)
 
-            step_num += 1      
-
-    async def handle_step_content(self, content):
-        # deal with single step content
-        step_results, next_step_flag = await self.statement_analysis.analyze(content)
-        return step_results, next_step_flag
+            pure_prompt = prompt_variable[0] + "END"
+            if len(prompt_variable[1].strip()) > 0:
+                if "->>" in prompt_variable[1]:
+                    add_type = "->>"
+                    res_variable_name = prompt_variable[1].strip().split("->>")[1].strip()
+                    if "(" in res_variable_name:
+                        variable_type = res_variable_name.split("(")[1].split(")")[0]
+                        res_variable_name = res_variable_name.split("(")[0]
+                    else:
+                        variable_type = None
+                elif "->" in prompt_variable[1]:
+                    add_type = "->"
+                    res_variable_name = prompt_variable[1].strip().split("->")[1].strip()
+                    if "(" in res_variable_name:
+                        variable_type = res_variable_name.split("(")[1].split(")")[0]
+                        res_variable_name = res_variable_name.split("(")[0]
+                    else:
+                        variable_type = None
+                else:
+                    res_variable_name, variable_type, add_type = None, None, None
+                return pure_prompt, res_variable_name, variable_type, add_type
+            else:
+                return pure_prompt, None, None, None
+        else:
+            if "->>" in content:
+                add_type = "->>"
+                prompt_variable = content.split("->>")
+                pure_prompt = prompt_variable[0].strip()
+                res_variable_name = prompt_variable[1].strip()
+                if "(" in res_variable_name:
+                    variable_type = res_variable_name.split("(")[1].split(")")[0]
+                    res_variable_name = res_variable_name.split("(")[0]
+                else:
+                    variable_type = None
+                return pure_prompt, res_variable_name, variable_type, add_type
+            elif "->" in content:
+                add_type = "->"
+                prompt_variable = content.split("->")
+                pure_prompt = prompt_variable[0].strip()
+                res_variable_name = prompt_variable[1].strip()
+                if "(" in res_variable_name:
+                    variable_type = res_variable_name.split("(")[1].split(")")[0]
+                    res_variable_name = res_variable_name.split("(")[0]
+                else:
+                    variable_type = "str"
+                return pure_prompt, res_variable_name, variable_type, add_type
+            else:
+                return content, None, None, None
 
 
 async def ut():

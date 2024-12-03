@@ -9,6 +9,7 @@
 ```
 请根据以下内容生成一个json格式的内容：$variable ->result(json)
 
+CODE: 请根据以下内容生成一个json格式的内容：$variable ->result(json)    表示用模型生成代码处理当前的问题
 
 @llm_call(
     query="请根据以下内容生成一个json格式的内容：$variable。使用chatglm3-130b模型。",
@@ -67,7 +68,7 @@ def flow1():
 - 样例：
 ```
 不指定agent运行：
-p:写一首诗，再赏析
+写一首诗，再赏析。->result(string)
 
 指定agent运行：
 @agent_name(query=$query) -> result
@@ -78,7 +79,7 @@ p:写一首诗，再赏析
 - 样例：
 ```
 # do something
-(bp)
+@(bp)
 ```
 
 ## 10.语义条件判断函数

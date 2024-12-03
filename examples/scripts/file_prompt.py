@@ -4,22 +4,31 @@
 # @Author    :Young.liu
 # tips       :
 import os
+import sys
+import json
+sys.path.append(r"F:\Cmodels\Orca\src")
 from dotenv import load_dotenv
-from Orca.Orca import OrcaExecutor
+from Orca import OrcaExecutor
+from Orca import all_tools
+def load_api_key(platform):
+    with open(r"C:\Users\86187\Desktop\api_key.json", "r", encoding="utf-8") as f:
+        api_dict = json.load(f)
+    # print(api_dict)
+    return api_dict.get(platform, None)
 
 load_dotenv()
-default_api_key = os.getenv("DEFAULT_MODEL_API_KEY")
-default_base_url = os.getenv("DEFAULT_MODEL_BASE_URL")
-default_llm_model_name = os.getenv("DEFAULT_LLM_MODEL_NAME")
-deepseek_api_key = os.getenv("DEEPSEEK_CHAT_MODEL_API_KEY")
-deepseek_model_base_url = os.getenv("DEEPSEEK_CHAT_MODEL_BASE_URL")
-deepseek_llm_model_name = os.getenv("DEEPSEEK_CHAT_LLM_MODEL_NAME")
+default_api_key = load_api_key("deepseek")
+default_base_url = "https://api.deepseek.com"
+default_llm_model_name = "deepseek-chat"
+deepseek_api_key = load_api_key("deepseek")
+deepseek_model_base_url = "https://api.deepseek.com"
+deepseek_llm_model_name = "deepseek-chat"
 
-groq_api_key = os.getenv("Groq_API_KEY")
-groq_llm_model_name = os.getenv("Groq_LLM_MODEL_NAME")
+groq_api_key = load_api_key("groq")
+groq_llm_model_name = "llama3-8b-8192"
 
-together_api_key = os.getenv("Together_API_KEY")
-together_llm_model_name = os.getenv("Together_LLM_MODEL_NAME")
+together_api_key = load_api_key("together")
+together_llm_model_name = "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo"
 config = {
     "default_model_api_key": default_api_key,
     "default_model_base_url": default_base_url,
@@ -33,24 +42,18 @@ config = {
     "together_llm_model_name": together_llm_model_name
 }
 
-orca_prompt_path = ""
+orca_prompt_path = r"F:\Cmodels\Orca\examples\0.1.2\if.orca"
 with open(orca_prompt_path, "r", encoding="utf-8") as f:
     content = f.read()
 
-variables = {
-    "query": "AI 撰写"
-}
-tool = {
-    "web_search": "websearch"
-}
 
 init_params = {
     "config": config,
     "memories": [],
     "debug_infos": [],
-    "variables": variables,
-    "tools": tool,
-}
+    "variables": {"input": "1"},
+    "tools": all_tools,
+    "default_agent":False}
 async def main():
     executor = OrcaExecutor()
     executor.init_executor(init_parmas=init_params)
@@ -60,8 +63,11 @@ async def main():
         mode = input("请输入运行模式：")
         executor.init_executor(init_parmas=res['breakpoint_infos'])
         res = await executor.execute(content, breakpoint_infos=res["breakpoint_infos"], mode=mode)
-    print(res)
-
+    print("--"*50)
+    print(res['variables_pool'].get_variables())
+    print("--"*50)
+    print(res['variables_pool'].get_variables('result'))
+    
 if __name__ == '__main__':
     import asyncio
     asyncio.run(main())

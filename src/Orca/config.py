@@ -1,3 +1,6 @@
+import json
+
+
 class Config:
     def __init__(self):
         self.config = {
@@ -17,3 +20,10 @@ class Config:
         for key, value in configs.items():
             self.config[key] = value
         return
+    
+def load_api_key(platform):
+    with open(r"C:\Users\86187\Desktop\api_key.json", "r", encoding="utf-8") as f:
+        api_dict = json.load(f)
+    # print(api_dict)
+    return api_dict.get(platform, None)
+

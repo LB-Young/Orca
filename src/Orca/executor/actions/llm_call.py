@@ -5,6 +5,7 @@ from openai import OpenAI
 from together import Together
 from groq import Groq
 
+from Orca.executor.utils.variable_replace import replace_variable
 
 class ModelMessage(BaseModel):
     role: str
@@ -111,33 +112,57 @@ class LLMClient:
                         self.client = self.together_client
                         self.llm_model_name = model_name
                         break
+        if self.client is None:
+            self.client = self.default_client
+            self.llm_model_name = self.default_llm_model_name
 
-    async def generate_answer(self, prompt=None, messages=None, tools=None, model_name=None):
+    async def generate_answer(self, prompt=None, messages=None, tools=None, model_name=None, stream=False):
         if messages is not None:
             prompt = messages[-1]['content']
         await self.get_client(prompt, model_name)
         # print("prompt:", prompt)
         # print("self.client:", self.client)
         # print("self.llm_model_name:", self.llm_model_name)
-        if messages is None:
-            if tools is None:
-                response = self.client.chat.completions.create(
-                    model=self.llm_model_name,
-                    messages=[
-                        {"role": "system", "content": "You are a helpful assistant"},
-                        {"role": "user", "content": prompt},
-                    ],
-                    stream=False,
-                )
-                return response.choices[0].message.content
+        if stream == False:
+            if messages is None:
+                if tools is None:
+                    response = self.client.chat.completions.create(
+                        model=self.llm_model_name,
+                        messages=[
+                            {"role": "system", "content": "You are a helpful assistant"},
+                            {"role": "user", "content": prompt},
+                        ],
+                        stream=False,
+                    )
+                    return response.choices[0].message.content
+            else:
+                if tools is None:
+                    response = self.client.chat.completions.create(
+                        model=self.llm_model_name,
+                        messages=messages,
+                        stream=False,
+                    )
+                    return response.choices[0].message.content
         else:
-            if tools is None:
-                response = self.client.chat.completions.create(
-                    model=self.llm_model_name,
-                    messages=messages,
-                    stream=False,
-                )
-                return response.choices[0].message.content
+            if messages is None:
+                if tools is None:
+                    response = self.client.chat.completions.create(
+                        model=self.llm_model_name,
+                        messages=[
+                            {"role": "system", "content": "You are a helpful assistant"},
+                            {"role": "user", "content": prompt},
+                        ],
+                        stream=False,
+                    )
+                    return response.choices[0].message.content
+            else:
+                if tools is None:
+                    response = self.client.chat.completions.create(
+                        model=self.llm_model_name,
+                        messages=messages,
+                        stream=True,
+                    )
+                    return response
             
 
     async def choose_function(self, prompt, tools, model_name=None):
@@ -156,40 +181,40 @@ class LLMClient:
         function_name = response.choices[0].message.tool_calls[0].function.name
         function_params = response.choices[0].message.tool_calls[0].function.arguments
         return function_name, function_params
-    
+
 
 class LLMCall:
-    def __init__(self, variable_tool_pool=None, config=None, memories=None, debug_infos=None):
-        self.memories = memories
-        self.variable_tool_pool = variable_tool_pool
-        self.debug_infos = debug_infos
-        self.config = config
-        self.config_dict = config.get_config()
-        self.llm_client = LLMClient(config_dict=self.config_dict)
-
-    async def execute(self, content):
-        content = await self.replace_variable(content)
-        response = await self.llm_client.generate_answer(content)
-        return response, "next"
-
-    async def replace_variable(self, prompt):
-        prompt_variable_pattern = re.compile(r'\{.*?\}')
-        matches = prompt_variable_pattern.findall(prompt)
-
-        replace_dict = {}
-        for match in matches:
-            variable_name = match[1:-1]
-            if variable_name.isdigit():
-                memory = self.memories.get_memory(variable_name)[0]
-                value = memory['output']
-                replace_dict[match] = value
-            else:
-                value = self.variable_tool_pool.get_variables(variable_name)
-                replace_dict[match] = value
+    def __init__(self):
+        pass
         
-        for key, value in replace_dict.items():
-            prompt = prompt.replace(key, value)
-        return prompt
+    async def analysis(self, content, all_states=None, stream=False):
+        self.all_states = all_states
+        if all_states is None:
+            raise Exception("All_states is None, and not init LLMCall")
+        else:
+            self.config_dict = all_states['config'].get_config()
+            self.llm_client = LLMClient(config_dict=self.config_dict)
+
+        content = await replace_variable(content, all_states)
+        type = await self.judge_prompt_type(content)
+        if type == "prompt":
+            response = await self.llm_client.generate_answer(prompt=content, stream=stream)
+        elif type == "code":
+            pass
+        result = {
+            "result": response,
+            "executed": True,
+            "all_states":all_states
+        }
+        return result
+
+    async def judge_prompt_type(self, prompt):
+        if prompt.strip().startswith("CODE:"):
+            return "code"
+        else:
+            return "prompt"
+
+
 
 async def ut():
     llm = LLMClient()

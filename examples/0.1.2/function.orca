@@ -1,0 +1,4 @@
+@google_search("搜索3篇关于RAG的网页内容。")-> result(list)
+FOR $item in $result:
+对$item内容进行分析，提取出关键内容，不超过100字。->> res
+END

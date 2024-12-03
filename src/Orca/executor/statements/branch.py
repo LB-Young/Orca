@@ -1,17 +1,10 @@
 import re
 from Orca.executor.actions.llm_call import ModelMessage, LLMCall, LLMClient
-
-
+from Orca.executor.utils.variable_replace import replace_variable
 
 class BranchBlook:
-    def __init__(self, variable_tool_pool=None, config=None, memories=None, debug_infos=None):
-        self.memories = memories
-        self.variable_tool_pool = variable_tool_pool
-        self.debug_infos = debug_infos
-        self.config = config
-        self.config_dict = config.get_config()
-        self.llm_client = LLMClient(config_dict=self.config_dict)
-        self.llm_call = LLMCall(self.variable_tool_pool, self.config, self.memories, self.debug_infos)
+    def __init__(self):
+        pass
 
     def validate(self, content):
         pass
@@ -37,60 +30,86 @@ class BranchBlook:
             tag_result = tag_list[int_result.index(1)]
         return tag_result
 
-    async def execute(self, content, variable):
-        lines = content.split('\n')
-        modified_lines= [
-            line.lstrip() if line.lstrip().startswith('if') or line.lstrip().startswith('else') or line.lstrip().startswith('elif') else line  
-            for line in lines
-        ]
-        content='\n'.join(modified_lines)
-        var_name = self.variable_tool_pool.list_variables()
-        var_value = []
-        step_memory_all = self.memories.get_all_memory()
-        step_name = []
-        step_output = []
-        for i in range(len(step_memory_all)):
-            step_name.append(step_memory_all[i]['step'])
-            step_output.append(step_memory_all[i]['output'])
-        for i in range(len(var_name)):
-            var_value.append(self.variable_tool_pool.get_variable(var_name[i]))
-        pattern = r"\{([a-zA-Z_][a-zA-Z0-9_]*|\d+)\}"
+    async def analysis(self, content, all_states=None):
+        condition_content_map = await self.parser_branch_content(content=content)
+        execute_branch = await self.get_execute_branch(condition_content_map, all_states)
+        result = {
+            "result":"",
+            "analysis_result":{
+                "if_content":execute_branch
+            },
+            "executed":False,
+            "all_states":all_states
+        }
+        return result
 
-        replaces = [['conditions:', 'if True:'], ['goto', 'step_label=']]
-        matches = re.findall(pattern, content)
-        for match in matches:
-            if match.isdigit():
-                if match not in step_name:
-                    raise Exception(f"error:step {match} not exist")
-                else:
-                    replaces.append(["{" + str(match) + "}", f"step_{match}_output"])
+    async def get_execute_branch(self, condition_content_map, all_states):
+        execute_content = ""
+        for condition, content in condition_content_map.items():
+            condition = condition.strip()
+            if condition.startswith('else'):
+                execute_content = content.strip()
+                break
+            elif condition.startswith('IF'):
+                condition = condition[2:-1].strip()
+            elif condition.startswith('elif'):
+                condition = condition[5:-1].strip()
+            full_condition = await replace_variable(condition, all_states)
+
+            if await self.condition_judge(full_condition):
+                execute_content = content.strip()
+                break
+        if execute_content == "":
+            raise Exception("无法找到满足条件的分支")
+        return execute_content
+
+    async def condition_judge(self, condition_content):
+        print("condition_content", condition_content)
+        try:
+            # 将a替换到条件字符串中，然后执行判断
+            result = eval(condition_content)
+            print("result", result)
+            return result
+        except Exception as e:
+            # 处理可能的异常
+            print(f"Error evaluating condition: {e}")
+            print(False)
+            return False
+
+    async def parser_branch_content(self, content):
+        """
+        content:'IF $input == "1": \n    介绍一下gpt4 -> introduction\nelif $input == "2":\n    介绍一下gpt3 -> introduction\nelse:\n    介绍一下gpt2 -> introduction\nEND'
+        condition_content_map = {
+            "if $input == \"1\":": "介绍一下gpt4 -> introduction",
+            "elif $input == \"2\":": "介绍一下gpt3 -> introduction",
+            "else:": "介绍一下gpt2 -> introduction"}
+        """
+        condition_content_map = {}
+        # 按行分割内容
+        lines = [line.strip() for line in content.split('\n') if line.strip()]
+        
+        current_condition = None
+        current_content = []
+        
+        for line in lines:
+            # 跳过END标记
+            if line.upper() == 'END':
+                continue
+                
+            # 检查是否是条件语句
+            if line.lower().startswith('if ') or line.lower().startswith('elif ') or line.lower() == 'else:':
+                # 如果已有条件，保存之前的内容
+                if current_condition is not None and current_content:
+                    condition_content_map[current_condition] = '\n'.join(current_content)
+                    current_content = []
+                current_condition = line
             else:
-                if match in step_name:
-                    replaces.append(["{" + str(match) + "}", f"step_{match}_output"])
-                elif match in var_name:
-                    replaces.append(["{" + str(match) + "}", f"{match}"])
-                else:
-                    raise Exception("error:step " + match + " or variable " + match + "not exist")
-        for replace in replaces:
-            content = content.replace(replace[0], replace[1])
-        pattern = r'output(?:\.[a-zA-Z_][a-zA-Z0-9_]*)+'
-        matches = re.findall(pattern, content)
-        for match in matches:
-            dot_indexs=[i for i, char in enumerate(match) if char == '.']
-            dot_num=len(dot_indexs)
-            if dot_num>0:
-                replace_str=""
-                replace_str=match[:dot_indexs[0]]+"['"+match[dot_indexs[0]+1:]
-                replace_str=replace_str.replace(".","']['")
-                replace_str+="']"
-                content = content.replace(match,replace_str)
-        local_vars = {}
-        func_and_var = {'llm_tagger': self.llm_tagger}
-        for i in range(len(var_name)):
-            func_and_var[f'{var_name[i]}'] = var_value[i]
-        for i in range(len(step_name)):
-            func_and_var[f'step_{step_name[i]}_output'] = step_memory_all[i]['output']
-        exec(content, func_and_var, local_vars)
-        step_label = str(local_vars.get('step_label'))
-        return "", step_label
+                # 添加内容到当前条件
+                current_content.append(line.strip())
+        
+        # 保存最后一个条件的内容
+        if current_condition is not None and current_content:
+            condition_content_map[current_condition] = '\n'.join(current_content)
+        return condition_content_map
 
+        
