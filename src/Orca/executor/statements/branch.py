@@ -86,15 +86,15 @@ class BranchBlook:
         """
         condition_content_map = {}
         # 按行分割内容
+        content = content.strip()
+        if content.endswith("END"):
+            content = content[:-3]
         lines = [line.strip() for line in content.split('\n') if line.strip()]
         
         current_condition = None
         current_content = []
         
         for line in lines:
-            # 跳过END标记
-            if line.upper() == 'END':
-                continue
                 
             # 检查是否是条件语句
             if line.lower().startswith('if ') or line.lower().startswith('elif ') or line.lower() == 'else:':

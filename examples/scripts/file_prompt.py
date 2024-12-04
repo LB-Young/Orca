@@ -23,7 +23,7 @@ default_llm_model_name = "deepseek-chat"
 deepseek_api_key = load_api_key("deepseek")
 deepseek_model_base_url = "https://api.deepseek.com"
 deepseek_llm_model_name = "deepseek-chat"
-
+deepseek_code_llm_model_name = "deepseek-coder"
 groq_api_key = load_api_key("groq")
 groq_llm_model_name = "llama3-8b-8192"
 
@@ -36,13 +36,14 @@ config = {
     "deepseek_chat_model_api_key": deepseek_api_key,
     "deepseek_chat_model_base_url": deepseek_model_base_url,
     "deepseek_chat_llm_model_name": deepseek_llm_model_name,
+    "deepseek_code_llm_model_name": deepseek_code_llm_model_name,
     "groq_api_key": groq_api_key,
     "groq_llm_model_name": groq_llm_model_name,
     "together_api_key": together_api_key,
     "together_llm_model_name": together_llm_model_name
 }
 
-orca_prompt_path = r"F:\Cmodels\Orca\examples\0.1.2\if.orca"
+orca_prompt_path = r"F:\Cmodels\Orca\examples\0.1.2\define_agent.orca"
 with open(orca_prompt_path, "r", encoding="utf-8") as f:
     content = f.read()
 
@@ -53,7 +54,16 @@ init_params = {
     "debug_infos": [],
     "variables": {"input": "1"},
     "tools": all_tools,
-    "default_agent":False}
+    "default_agent":{
+        "flag":False,
+        "roles": {
+            "finance_expert": "金融专家",
+            "law_expert": "法律专家",
+            "medical_expert": "医疗专家",
+            "computer_expert": "计算机专家",
+                }
+            }
+        }
 async def main():
     executor = OrcaExecutor()
     executor.init_executor(init_parmas=init_params)

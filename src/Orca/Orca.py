@@ -26,16 +26,15 @@ class OrcaExecutor:
             elif key == "agents":
                 self.tools_agents_pool.init_agents(agents=value)
             elif key == "default_agent":
-                if value:
-                    roles = {
-                        "finance_expert": "金融专家",
-                        "law_expert": "法律专家",
-                        "medical_expert": "医疗专家",
-                        "computer_expert": "计算机专家",
-                    }
+                if value['flag']:
+                    roles = value['roles']
                     tools = init_parmas['tools']
                     default_agent = Agent(roles=roles, tools=tools)
-                    self.tools_agents_pool.add_agents(agents={"default_agent":default_agent})
+                    default_agent_msg = {
+                        "object": default_agent,
+                        "describe": "这个是系统默认的专业agent，当用户没有指定回答的agent时，使用当前的agent回答。"
+                    }
+                    self.tools_agents_pool.add_agents(agents={"default_agent":default_agent_msg})
             else:
                 pass
 

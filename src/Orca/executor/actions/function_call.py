@@ -20,7 +20,7 @@ class FunctionCall:
             # agent_response = await all_agents[module_name].execute(params_content)
 
             agent_response = ""
-            async for item in all_agents[module_name].execute(params_content):
+            async for item in all_agents[module_name]['object'].execute(params_content, all_states=all_states, stream=True):
                 # print(item, end="", flush=True)
                 agent_response += item
 
@@ -36,7 +36,6 @@ class FunctionCall:
                 params_content = '"{' + params_content[1:-1] + '}"'
             params_dict = {}
             try:
-                breakpoint
                 params_dict = json.loads(params_content)
             except:
                 if all_states is None:

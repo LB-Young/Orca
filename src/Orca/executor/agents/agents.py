@@ -1,6 +1,9 @@
 import json
 from Orca.executor.actions.llm_call import LLMCall
 from Orca.executor.actions.function_call import FunctionCall
+from Orca.executor.utils.variable_replace import replace_variable
+
+
 
 class Agent:
     def __init__(self, roles=None, tools=None):
@@ -42,23 +45,23 @@ class Agent:
         self.tools = {}
         self.tool_describe = []
         for key, value in tools.items():
-            self.tools[key] = value["obj"]
+            self.tools[key] = value["object"]
             self.tool_describe.append(f"{key}: {value['describe']}\n")
-        self.role = self.role_format.replace("\{roles\}", self.roles_info).replace("\{tools\}", "".join(self.tool_describe))
+        self.role = self.role_format.replace(r"{roles}", self.roles_info).replace(r"{tools}", "".join(self.tool_describe))
 
         self.llmcall = LLMCall()
         self.functioncall = FunctionCall()
 
     async def execute(self, prompt, all_states=None, stream=False):
+        prompt = await replace_variable(prompt, all_states)
         prompt = self.role.replace("{prompt}", prompt).strip()
-        result = await self.llmcall.analysis(content=prompt, all_states=all_states, stream=True)
+        result = await self.llmcall.analysis(content=prompt, all_states=all_states, stream=stream, variable_replaced=True)
         if result['executed']:
             result = result['result']
-
         all_answer = ""
         tool_messages = ""
         tool_Flag = False
-        for chunk in result['result']:
+        for chunk in result:
             all_answer += chunk.choices[0].delta.content
             if tool_Flag:
                 tool_messages += chunk.choices[0].delta.content

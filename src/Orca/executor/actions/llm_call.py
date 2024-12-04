@@ -19,7 +19,7 @@ class LLMClient:
 
         self.deepseek_client = OpenAI(api_key=config_dict["deepseek_chat_model_api_key"], base_url=config_dict['deepseek_chat_model_base_url'])
         self.deepseek_llm_model_name = config_dict['deepseek_chat_llm_model_name'].split(",")
-
+        self.deepseek_code_llm_model_name = config_dict['deepseek_code_llm_model_name'].split(",")
         self.groq_client = Groq(api_key=config_dict["groq_api_key"])
         self.groq_llm_model_name = config_dict['groq_llm_model_name'].split(",")
 
@@ -123,7 +123,7 @@ class LLMClient:
         # print("prompt:", prompt)
         # print("self.client:", self.client)
         # print("self.llm_model_name:", self.llm_model_name)
-        if stream == False:
+        if not stream:
             if messages is None:
                 if tools is None:
                     response = self.client.chat.completions.create(
@@ -146,6 +146,16 @@ class LLMClient:
         else:
             if messages is None:
                 if tools is None:
+                    response = self.client.chat.completions.create(
+                        model=self.llm_model_name,
+                        messages=[
+                            {"role": "system", "content": "You are a helpful assistant"},
+                            {"role": "user", "content": prompt},
+                        ],
+                        stream=True,
+                    )
+                    return response
+                else:
                     response = self.client.chat.completions.create(
                         model=self.llm_model_name,
                         messages=[
@@ -187,20 +197,20 @@ class LLMCall:
     def __init__(self):
         pass
         
-    async def analysis(self, content, all_states=None, stream=False):
+    async def analysis(self, content, all_states=None, stream=False, variable_replaced=False):
         self.all_states = all_states
         if all_states is None:
             raise Exception("All_states is None, and not init LLMCall")
         else:
             self.config_dict = all_states['config'].get_config()
             self.llm_client = LLMClient(config_dict=self.config_dict)
-
-        content = await replace_variable(content, all_states)
+        if not variable_replaced:
+            content = await replace_variable(content, all_states)
         type = await self.judge_prompt_type(content)
         if type == "prompt":
             response = await self.llm_client.generate_answer(prompt=content, stream=stream)
         elif type == "code":
-            pass
+            response = await self.llm_client.generate_code(prompt=content, stream=stream)
         result = {
             "result": response,
             "executed": True,

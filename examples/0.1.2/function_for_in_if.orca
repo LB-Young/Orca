@@ -1,0 +1,15 @@
+IF $input == "1": 
+总共有多少种排序方式,以list形式返回三个如['method1','method2']。 -> sort_methods(list)
+FOR $item in $sort_methods:
+    @google_search(搜索2篇关于$item的网页) -> blogs
+    FOR $blog in $blogs:
+        对以下网页内容进行总结：$blog。 ->> page_summary
+    END
+    对以下列表中的内容进行总结：$page_summary。 ->> method_summary
+END
+elif $input == "2":
+    介绍一下KMP算法 -> method_summary
+else:
+    介绍一下并查集 -> method_summary
+END
+对比这些方法的优劣:$method_summary。 ->> comparison

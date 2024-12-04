@@ -4,6 +4,8 @@ from Orca.executor.statements.branch import BranchBlook
 from Orca.executor.statements.circular import CircularBlock
 from Orca.executor.actions.llm_call import LLMCall
 from Orca.executor.actions.function_call import FunctionCall
+from Orca.executor.actions.agent_init import AgentInit
+
 
 
 class Executor:
@@ -31,7 +33,7 @@ class Executor:
         print("单句prompt分析结果：")
         print(pure_prompt, res_variable_name, variable_type, add_type)
         if prompt_segment['type'] == "prompt":
-            if "default_agent" in all_states['tools_agents_pool'].get_agents().keys():
+            if "default_agent" in all_states['tools_agents_pool'].get_agents().keys() and (not pure_prompt.strip().startswith("CODE")):
                 # 应该调用默认agent
                 self.function_call = FunctionCall()
                 pure_prompt = "@default_agent(" + pure_prompt + ")"
@@ -70,7 +72,15 @@ class Executor:
                     raise Exception("Function type not supported")
         elif prompt_segment['type'] == "agent_init":
             # 初始化agent
-            pass
+            self.agent_init = AgentInit()
+            analysis_result = await self.agent_init.analysis(pure_prompt, all_states)
+            if analysis_result['executed']:
+                pass
+            else:
+                all_states = analysis_result['all_states']
+                all_states['tools_agents_pool'].add_agents(agents={res_variable_name.strip():analysis_result['result']})
+                result = "agent 已经注册！"
+                
         elif prompt_segment['type'] == "function_init":
             pass
         elif prompt_segment['type'] == "FOR":
