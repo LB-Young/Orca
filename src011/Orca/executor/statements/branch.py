@@ -9,7 +9,7 @@ class BranchBlook:
         self.variable_tool_pool = variable_tool_pool
         self.debug_infos = debug_infos
         self.config = config
-        self.config_dict = config.get_config()
+        self.config_dict = config.get_configs()
         self.llm_client = LLMClient(config_dict=self.config_dict)
         self.llm_call = LLMCall(self.variable_tool_pool, self.config, self.memories, self.debug_infos)
 

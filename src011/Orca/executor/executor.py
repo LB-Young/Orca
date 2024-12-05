@@ -65,7 +65,7 @@ class Executor:
                     breakpoint_infos['debug_infos'] = self.debug_infos.get_debug_info()
                     breakpoint_infos['next_step_name'] = next_step_name
                     breakpoint_infos["analysis_result"] = analysis_result
-                    breakpoint_infos['config'] = self.config.get_config()
+                    breakpoint_infos['config'] = self.config.get_configs()
                     res_dict['breakpoint_infos'] = breakpoint_infos
                     del res_dict['debug_infos']
                 return res_dict

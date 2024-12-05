@@ -1,0 +1,8 @@
+IF $input == "1": 
+    @exit(msg="步骤 1运行结束,退出程序！")
+elif $input == "2":
+    介绍一下gpt3 -> introduction
+else:
+    介绍一下gpt2 -> introduction
+END
+判断一下“$introduction”是介绍什么内容的 ->result 

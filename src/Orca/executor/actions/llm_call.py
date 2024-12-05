@@ -202,7 +202,7 @@ class LLMCall:
         if all_states is None:
             raise Exception("All_states is None, and not init LLMCall")
         else:
-            self.config_dict = all_states['config'].get_config()
+            self.config_dict = all_states['config'].get_configs()
             self.llm_client = LLMClient(config_dict=self.config_dict)
         if not variable_replaced:
             content = await replace_variable(content, all_states)

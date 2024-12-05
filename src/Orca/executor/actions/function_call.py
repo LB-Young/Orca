@@ -41,7 +41,7 @@ class FunctionCall:
                 if all_states is None:
                     raise Exception("All_states is None, can not extract function_call params")
                 else:
-                    self.config_dict = all_states['config'].get_config()
+                    self.config_dict = all_states['config'].get_configs()
                     self.llm_client = LLMClient(config_dict=self.config_dict)
                 if module_name in all_tools.keys():
                     module_params_describe = all_tools[module_name]['describe']

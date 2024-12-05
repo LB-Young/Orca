@@ -164,7 +164,7 @@ class LLMCall:
         self.variable_tool_pool = variable_tool_pool
         self.debug_infos = debug_infos
         self.config = config
-        self.config_dict = config.get_config()
+        self.config_dict = config.get_configs()
         self.llm_client = LLMClient(config_dict=self.config_dict)
 
     async def execute(self, content):

@@ -10,7 +10,7 @@ class AgentCall:
         self.variable_tool_pool = variable_tool_pool
         self.debug_infos = debug_infos
         self.config = config
-        self.config_dict = config.get_config()
+        self.config_dict = config.get_configs()
         self.llm_client = LLMClient(self.config_dict)
         self.agent_executor = AgentExecutor(variable_tool_pool=self.variable_tool_pool, config=self.config, memories=self.memories, debug_infos=self.debug_infos)
 

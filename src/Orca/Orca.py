@@ -21,7 +21,7 @@ class OrcaExecutor:
                 self.variables_pool.init_variables(variables=value)
             elif key == "tools":
                 self.tools_agents_pool.init_tools(tools=value)
-            elif key == "config":
+            elif key == "configs":
                 self.config.init_config(configs=value)
             elif key == "agents":
                 self.tools_agents_pool.init_agents(agents=value)
@@ -60,8 +60,9 @@ class OrcaExecutor:
                 "tools_agents_pool":self.tools_agents_pool, 
                 "debug_infos":self.debug_infos,
                 "config":self.config, 
+                "prompt_segments":breakpoint_infos['prompt_segments'],
             }
             executor = Executor()
-            response = await executor.execute(prompt=breakpoint_infos["prompt"], all_states=all_states, mode=mode)
+            response = await executor.execute(prompt=prompt, all_states=all_states, mode=mode)
             return response
 

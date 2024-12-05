@@ -9,7 +9,7 @@ class Leader:
         self.variable_tool_pool = variable_tool_pool
         self.debug_infos = debug_infos
         self.config = config
-        self.llm_client = LLMClient(config_dict=self.config.get_config())
+        self.llm_client = LLMClient(config_dict=self.config.get_configs())
         self.poet = Poet(self.llm_client)
         self.expert = Expert(self.llm_client)
         self.agents = {"poet": self.poet, "expert": self.expert, "self": self.llm_client}

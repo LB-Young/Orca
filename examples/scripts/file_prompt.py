@@ -43,13 +43,13 @@ config = {
     "together_llm_model_name": together_llm_model_name
 }
 
-orca_prompt_path = r"F:\Cmodels\Orca\examples\0.1.2\define_agent.orca"
+orca_prompt_path = r"F:\Cmodels\Orca\examples\0.1.2\bp.orca"
 with open(orca_prompt_path, "r", encoding="utf-8") as f:
     content = f.read()
 
 
 init_params = {
-    "config": config,
+    "configs": config,
     "memories": [],
     "debug_infos": [],
     "variables": {"input": "1"},
@@ -67,16 +67,25 @@ init_params = {
 async def main():
     executor = OrcaExecutor()
     executor.init_executor(init_parmas=init_params)
-    res = await executor.execute(prompt=content)
+    res, execute_state  = await executor.execute(prompt=content)
     print(res.keys())
-    while "breakpoint_infos" in res.keys():
+    while execute_state == "bp":
         mode = input("请输入运行模式：")
-        executor.init_executor(init_parmas=res['breakpoint_infos'])
-        res = await executor.execute(content, breakpoint_infos=res["breakpoint_infos"], mode=mode)
+        new_init_params = {
+            "configs": res['config'].get_configs(),
+            "memories": [],
+            "debug_infos": res['debug_infos'].get_debug_infos(),
+            "variables": res['variables_pool'].get_variables(),
+            "tools": res['tools_agents_pool'].get_tools(),
+            "agents": res['tools_agents_pool'].get_agents(),
+            "prompt_segments": res['prompt_segments'],
+        }
+        executor.init_executor(init_parmas=new_init_params)
+        res, execute_state = await executor.execute(content, breakpoint_infos=new_init_params, mode=mode)
     print("--"*50)
     print(res['variables_pool'].get_variables())
     print("--"*50)
-    print(res['variables_pool'].get_variables('result'))
+    print(res['variables_pool'].get_variables('final_result'))
     
 if __name__ == '__main__':
     import asyncio

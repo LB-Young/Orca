@@ -50,8 +50,6 @@ class PromptAnalysis:
                             continue
                     if type_ == "FOR" or type_ == "IF":
                         stack = 0
-                        if prompt.strip().startswith("@google_searc"):
-                            breakpoint()
                         for i in range(match.start(), match.end()-2):
                             if prompt[i:i+3] == 'FOR' or prompt[i:i+2] == 'IF':
                                 stack += 1

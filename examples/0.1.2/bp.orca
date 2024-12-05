@@ -1,0 +1,10 @@
+IF $input == "1": 
+    介绍一下claude -> introduction
+elif $input == "2":
+    介绍一下gpt3 -> introduction
+else:
+    介绍一下gpt2 -> introduction
+END
+@(bp)
+判断一下“$introduction”是介绍什么内容的。 ->result 
+把“$introduction”缩短成100字以内。 -> short_introduction

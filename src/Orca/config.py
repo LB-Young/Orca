@@ -13,7 +13,7 @@ class Config:
             "default_top_k":50,
         }
 
-    def get_config(self):
+    def get_configs(self):
         return self.config
 
     def init_config(self, configs):

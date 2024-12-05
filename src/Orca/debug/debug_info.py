@@ -17,3 +17,6 @@ class DebugInfo:
                 if debug_info['step'] == step:
                     return_debug_info.append(debug_info)
             return return_debug_info
+    
+    def get_debug_infos(self):
+        return self.debug_info

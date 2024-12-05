@@ -2,6 +2,7 @@ import re
 from Orca.analysis.prompt_analysis import PromptAnalysis
 from Orca.executor.statements.branch import BranchBlook
 from Orca.executor.statements.circular import CircularBlock
+from Orca.executor.statements.exit import ExitBlock
 from Orca.executor.actions.llm_call import LLMCall
 from Orca.executor.actions.function_call import FunctionCall
 from Orca.executor.actions.agent_init import AgentInit
@@ -14,17 +15,31 @@ class Executor:
 
     async def execute(self, prompt, all_states=None, mode="c"):
         # parser prompt
-        self.prompt_analysis = PromptAnalysis()
-        prompt_segments = await self.prompt_analysis.analyze(prompt, all_states=all_states)
+        if "prompt_segments" not in all_states.keys():
+            self.prompt_analysis = PromptAnalysis()
+            prompt_segments = await self.prompt_analysis.analyze(prompt, all_states=all_states)
+        else:
+            prompt_segments = all_states['prompt_segments']
         print("prompt解析后的列表:", prompt_segments)
         print("-"*100)
         # Execute the commandx
         # Return the result
-        for prompt_segment in prompt_segments:
-            all_states = await self.segment_execute(prompt_segment=prompt_segment, all_states=all_states)
-        return all_states
+        execute_state = "prompt"
+        for index, prompt_segment in enumerate(prompt_segments):
+            all_states, execute_state = await self.segment_execute(prompt_segment=prompt_segment, all_states=all_states)
+            if execute_state == "exit":
+                break
+            if  execute_state == "bp":
+                all_states['prompt_segments'] = prompt_segments[index+1:]
+                break
+            if  mode == "n" and len(prompt_segments)>1:
+                all_states['prompt_segments'] = prompt_segments[index+1:]
+                execute_state = "bp"
+                break
+        return all_states, execute_state
 
     async def segment_execute(self, prompt_segment, all_states=None):
+        execute_state = "normal"
         """
         prompt_segment:type，content，result_variable，all_next_prompt；
         ["prompt"、"function"、"FOR"、"IF"、"exit"、"bp"、"agent_init"、"function_init"]
@@ -66,7 +81,7 @@ class Executor:
                 all_states = analysis_result['all_states']
             else:
                 if analysis_result['analysis_result']['function_info']['type'] == "workflow_init":
-                    all_states = await self.execute(analysis_result['analysis_result']['function_info']['function_content'], all_states=all_states)
+                    all_states, execute_state = await self.execute(analysis_result['analysis_result']['function_info']['function_content'], all_states=all_states)
                     result = all_states['variables_pool'].get_variable('final_result')
                 else:
                     raise Exception("Function type not supported")
@@ -98,24 +113,32 @@ class Executor:
                 print("提取后的for语句执行体：",for_content)
                 for item in iter_list:
                     all_states['variables_pool'].add_variable(iter_v.replace("$","").strip(), item)
-                    all_states = await self.execute(for_content, all_states=all_states)
+                    all_states, execute_state = await self.execute(for_content, all_states=all_states)
                 all_states['variables_pool'].remove_variable(iter_v.replace("$","").strip())
                 result = all_states['variables_pool'].get_variables('final_result')
         elif prompt_segment['type'] == "IF":
             # 分支结构处理
             self.branch_blook = BranchBlook()
-            result = await self.branch_blook.analysis(pure_prompt, all_states)
-            if result['executed']:
-                result = result['result']
-                all_states = result['all_states']
+            analysis_result = await self.branch_blook.analysis(pure_prompt, all_states)
+            if analysis_result['executed']:
+                result = analysis_result['result']
+                all_states = analysis_result['all_states']
             else:
-                all_states = await self.execute(result['analysis_result']['if_content'], all_states=all_states)
+                all_states, execute_state = await self.execute(analysis_result['analysis_result']['if_content'], all_states=all_states)
                 result = all_states['variables_pool'].get_variables('final_result')
         elif prompt_segment['type'] == "exit":
-            result = prompt_segment['content']
-            return
+            self.exit_block  = ExitBlock()
+            analysis_result = await self.exit_block.analysis(pure_prompt, all_states)
+            if analysis_result['executed']:
+                result = analysis_result['result']
+                all_states = analysis_result['all_states']
+                all_states['variables_pool'].add_variable("final_result", result, "str")
+                execute_state = "exit"
+            else:
+                pass
         elif prompt_segment['type'] == "bp":
-            result = prompt_segment['content']
+            result = "进入bp"
+            execute_state = "bp"
 
         if res_variable_name is not None:
             if add_type == "->":
@@ -124,7 +147,7 @@ class Executor:
                 all_states['variables_pool'].add_variable_value(res_variable_name,result,variable_type)
             all_states['variables_pool'].add_variable("final_result", result, variable_type)
         print("当前步骤结果:", str(result)[:100])
-        return all_states
+        return all_states, execute_state
     
     async def prompt_segment_analysis(self, prompt_segment):
         """
