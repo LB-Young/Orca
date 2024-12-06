@@ -24,7 +24,7 @@ class VariablesPool:
             except:
                 raise Exception(f"Invalid list format, variable: {variable_type}")
         else:
-            pass
+            variable_value = str(variable_value)
         self.variables[variable_name] = variable_value
 
     def add_variable_value(self, variable_name, variable_value, variable_type):

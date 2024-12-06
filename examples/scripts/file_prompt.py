@@ -6,7 +6,8 @@
 import os
 import sys
 import json
-sys.path.append(r"F:\Cmodels\Orca\src")
+sys.path.append(r"F:\Cmodels\公众号\Orca\src")
+sys.path.append(r"F:\python project\tools_set")
 from dotenv import load_dotenv
 from Orca import OrcaExecutor
 from Orca import all_tools
@@ -43,16 +44,18 @@ config = {
     "together_llm_model_name": together_llm_model_name
 }
 
-orca_prompt_path = r"F:\Cmodels\Orca\examples\0.1.2\bp.orca"
+orca_prompt_path = r"F:\Cmodels\公众号\Orca\examples\0.1.2\wechatmp.orca"
 with open(orca_prompt_path, "r", encoding="utf-8") as f:
     content = f.read()
 
+from tools import other_tools
+all_tools.update(other_tools)
 
 init_params = {
     "configs": config,
     "memories": [],
     "debug_infos": [],
-    "variables": {"input": "1"},
+    "variables": {"topic":"openai的o1-pro模型"},
     "tools": all_tools,
     "default_agent":{
         "flag":False,
