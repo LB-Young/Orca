@@ -11,7 +11,7 @@ class PromptAnalysis:
         type:["prompt"、"function"、"FOR"、"IF"、"exit"、"bp"、"agent_init"、"function_init"]
         """
 
-        print("需要解析的prompt：", prompt)
+        # print("需要解析的prompt：", prompt)
 
         self.prompt = prompt.strip()
         

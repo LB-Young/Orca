@@ -20,8 +20,8 @@ class Executor:
             prompt_segments = await self.prompt_analysis.analyze(prompt, all_states=all_states)
         else:
             prompt_segments = all_states['prompt_segments']
-        print("prompt解析后的列表:", prompt_segments)
-        print("-"*100)
+        # print("prompt解析后的列表:", prompt_segments)
+        # print("-"*100)
         # Execute the commandx
         # Return the result
         execute_state = "prompt"
@@ -45,8 +45,8 @@ class Executor:
         ["prompt"、"function"、"FOR"、"IF"、"exit"、"bp"、"agent_init"、"function_init"]
         """
         pure_prompt, res_variable_name, variable_type, add_type = await self.prompt_segment_analysis(prompt_segment)
-        print("单句prompt分析结果：")
-        print(pure_prompt, res_variable_name, variable_type, add_type)
+        # print("单句prompt分析结果：")
+        print("当前执行语句：", pure_prompt, add_type, res_variable_name, variable_type)
         if prompt_segment['type'] == "prompt":
             if "default_agent" in all_states['tools_agents_pool'].get_agents().keys() and (not pure_prompt.strip().startswith("CODE")):
                 # 应该调用默认agent
@@ -110,7 +110,7 @@ class Executor:
                 iter_v = analysis_result['analysis_result']['iter_v']
                 iter_list = analysis_result['analysis_result']['iter_list']
                 for_content = analysis_result['analysis_result']['for_content']
-                print("提取后的for语句执行体：",for_content)
+                # print("提取后的for语句执行体：",for_content)
                 for item in iter_list:
                     all_states['variables_pool'].add_variable(iter_v.replace("$","").strip(), item)
                     all_states, execute_state = await self.execute(for_content, all_states=all_states)
@@ -146,7 +146,7 @@ class Executor:
             elif add_type == "->>":
                 all_states['variables_pool'].add_variable_value(res_variable_name,result,variable_type)
             all_states['variables_pool'].add_variable("final_result", result, variable_type)
-        print("当前步骤结果:", str(result)[:100])
+        print("当前步骤结果:", str(result))
         return all_states, execute_state
     
     async def prompt_segment_analysis(self, prompt_segment):
@@ -155,7 +155,7 @@ class Executor:
         """
         # 匹配赋值指令的正则表达式
         content = prompt_segment['content']
-        print("待分析的单句prompt:",content)
+        # print("待分析的单句prompt:",content)
         if content.strip().startswith("FOR") or content.strip().startswith("IF"):
             prompt_variable = content.rsplit("END", 1)
 

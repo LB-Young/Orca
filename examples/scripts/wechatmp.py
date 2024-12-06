@@ -6,7 +6,7 @@
 import os
 import sys
 import json
-sys.path.append(r"F:\Cmodels\Orca\src")
+sys.path.append(r"F:\Cmodels\公众号\Orca\src")
 from dotenv import load_dotenv
 from Orca import OrcaExecutor
 from Orca import all_tools
@@ -43,16 +43,19 @@ config = {
     "together_llm_model_name": together_llm_model_name
 }
 
-orca_prompt_path = r"F:\Cmodels\Orca\examples\0.1.2\bp.orca"
+orca_prompt_path = r"F:\Cmodels\公众号\Orca\examples\0.1.2\wechatmp.orca"
 with open(orca_prompt_path, "r", encoding="utf-8") as f:
     content = f.read()
-
+    
+sys.path.append(r"F:\python project\tools_set")
+from tools import other_tools
+all_tools.update(other_tools)
 
 init_params = {
     "configs": config,
     "memories": [],
     "debug_infos": [],
-    "variables": {"input": "1"},
+    "variables": {"topic":"openai的o1-pro模型"},
     "tools": all_tools,
     "default_agent":{
         "flag":False,
@@ -82,10 +85,9 @@ async def main():
         }
         executor.init_executor(init_parmas=new_init_params)
         res, execute_state = await executor.execute(content, breakpoint_infos=new_init_params, mode=mode)
-    # print("--"*50)
-    # print(res['variables_pool'].get_variables())
     print("--"*50)
-    print("final_answer:")
+    print(res['variables_pool'].get_variables())
+    print("--"*50)
     print(res['variables_pool'].get_variables('final_result'))
     
 if __name__ == '__main__':
