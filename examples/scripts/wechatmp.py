@@ -46,7 +46,7 @@ config = {
 orca_prompt_path = r"F:\Cmodels\公众号\Orca\examples\0.1.2\wechatmp.orca"
 with open(orca_prompt_path, "r", encoding="utf-8") as f:
     content = f.read()
-    
+
 sys.path.append(r"F:\python project\tools_set")
 from tools import other_tools
 all_tools.update(other_tools)
@@ -55,7 +55,7 @@ init_params = {
     "configs": config,
     "memories": [],
     "debug_infos": [],
-    "variables": {"topic":"openai的o1-pro模型"},
+    "variables": {"topic":"openai day2"},
     "tools": all_tools,
     "default_agent":{
         "flag":False,
