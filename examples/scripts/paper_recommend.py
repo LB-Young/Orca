@@ -43,12 +43,10 @@ config = {
     "together_llm_model_name": together_llm_model_name
 }
 
-orca_prompt_path = r"F:\Cmodels\Orca\examples\0.1.2\wechatmp.orca"  # 输入workflow prompt路径
+orca_prompt_path = r"F:\Cmodels\Orca\examples\0.1.2\paper_recommend.orca"  # 输入workflow prompt路径
 with open(orca_prompt_path, "r", encoding="utf-8") as f:
     content = f.read()
 
-topic = "Sora v2"       # 输入主题
-final_output_artical_path = f"./output/{topic}.txt"
 sys.path.append(r"F:\python project\tools_set")
 from tools import other_tools
 all_tools.update(other_tools)
@@ -57,7 +55,7 @@ init_params = {
     "configs": config,
     "memories": [],
     "debug_infos": [],
-    "variables": {"topic":topic, "final_output_artical_path":final_output_artical_path},
+    "variables": {"type_sets":['LLM','RAG','Agent','多模态','音频','计算机视觉'], "research_direction":['LLM','RAG','Agent','多模态']},
     "tools": all_tools,
     "default_agent":{
         "flag":False,

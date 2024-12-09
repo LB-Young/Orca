@@ -28,7 +28,7 @@ class VariablesPool:
         self.variables[variable_name] = variable_value
 
     def add_variable_value(self, variable_name, variable_value, variable_type):
-        print("variable_name, variable_value:", variable_name, variable_value)
+        # print("variable_name, variable_value:", variable_name, variable_value)
         if variable_name in self.variables.keys():
             self.variables.get(variable_name, []).append(variable_value)
         else:

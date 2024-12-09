@@ -27,6 +27,9 @@ class LLMClient:
         self.together_llm_model_name = config_dict['together_llm_model_name'].split(",")
 
     async def get_client(self, prompt, model_name=None):
+        self.client = self.default_client
+        self.llm_model_name = self.default_llm_model_name
+        return
         if model_name is None:
             self.client = None
             self.llm_model_name = None
