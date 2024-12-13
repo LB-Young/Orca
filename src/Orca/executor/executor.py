@@ -6,7 +6,7 @@ from Orca.executor.statements.exit import ExitBlock
 from Orca.executor.actions.llm_call import LLMCall
 from Orca.executor.actions.function_call import FunctionCall
 from Orca.executor.actions.agent_init import AgentInit
-
+from Orca.executor.actions.function_init import FunctionInit
 
 
 class Executor:
@@ -97,7 +97,14 @@ class Executor:
                 result = "agent 已经注册！"
                 
         elif prompt_segment['type'] == "function_init":
-            pass
+            self.function_init = FunctionInit()
+            analysis_result = await self.function_init.analysis(pure_prompt, all_states)
+            if analysis_result['executed']:
+                pass
+            else:
+                tool = analysis_result['analysis_result']
+                all_states['tools_agents_pool'].add_tools(tool)
+                result = "function 已经注册！"
         elif prompt_segment['type'] == "FOR":
             # for循环处理逻辑
             self.circular_blook = CircularBlock()

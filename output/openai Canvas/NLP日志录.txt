@@ -1,0 +1,16 @@
+url: /link?url=dn9a_-gY295K0Rci_xozVXfdMkSQTLW6cwJThYulHEtVjXrGTiVgS5FLi4EgWb-aA5jX2GmcGPrSJwwyhsRcI1qXa8Fplpd9wNBRSZU0Qo2-XazWStm6EDaZoolmTdoczZwReK43HAlxru7gfZSn2aqeRDOOyAWYaFXEegKEhHfsyDzUAy05OjCQl66U65BtwgLO79qrt2H_FiqSx8OYN_38N9j-mpXYp8UUIlTZCs8l1JTVTrvN25K_o6UCYEi0ezZir3UgZ_Nj3x9Nw6p-Fg..&type=2&query=openai Canvas&token=D776C2967908FB310B0D24F7BFF679330C0E23ED67596366
+title:  
+time: 2024-10-18
+abstract:  
+user_id: NLP日志录
+content: OpenAI Canvas的开源替代：Open-canvas，支持本地化部署，解决搞内容朋友的刚需。可以快速伪原创、翻译成5种语言等，同时具备初步的编程助手能力。可本地化部署快速接入到公司内部OA系统、编程IDE系统等，在实现AI辅助的同时也保障了数据安全。
+参考文献：
+[1] https://github.com/langchain-ai/open-canvas
+[2] https://open-canvas-lc.vercel.app/
+[3] https://www.youtube.com/watch?v=M3ofenGmTao
+
+
+NLP工程化(星球号)
+欢迎加入我的知识星球，长按或扫码下方二维码。
+星球号主要针对公众号提供增值服务，内容包括但不限于：源码解析及答疑(Dify等)，书籍|报告下载(电子资料)，代码|数据下载(公众号付费资料)。
+<<<左右滑动见更多>>>

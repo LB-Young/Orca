@@ -43,7 +43,7 @@ config = {
     "together_llm_model_name": together_llm_model_name
 }
 
-orca_prompt_path = r"F:\Cmodels\Orca\examples\0.1.2\bp.orca"
+orca_prompt_path = r"F:\Cmodels\Orca\examples\0.1.2\function_init.orca"
 with open(orca_prompt_path, "r", encoding="utf-8") as f:
     content = f.read()
 

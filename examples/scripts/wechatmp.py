@@ -43,11 +43,11 @@ config = {
     "together_llm_model_name": together_llm_model_name
 }
 
-orca_prompt_path = r"F:\Cmodels\Orca\examples\0.1.2\wechatmp.orca"  # 输入workflow prompt路径
+orca_prompt_path = r"F:\Cmodels\Orca\examples\0.1.2\wechatmp1.orca"  # 输入workflow prompt路径
 with open(orca_prompt_path, "r", encoding="utf-8") as f:
     content = f.read()
 
-topic = "Sora v2"       # 输入主题
+topic = "gemini 2.0"       # 输入主题
 final_output_artical_path = f"./output/{topic}.txt"
 sys.path.append(r"F:\python project\tools_set")
 from tools import other_tools

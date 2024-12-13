@@ -1,0 +1,20 @@
+url: /link?url=dn9a_-gY295K0Rci_xozVXfdMkSQTLW6cwJThYulHEtVjXrGTiVgS5FLi4EgWb-aspm5LYmOOC_IVPsd-072FlqXa8Fplpd9MzRsYWQoT252tit-oJp6wk4xWdMRLBmvN8MPG4YbzYgepc-Sld5gEbvFcwdSLHoBItoGW29ZYqw1wjotuGV0LLrpXyFRDpSiYAseLhZl4vF1GR2utdN0poqXjcsEhJOe7o7ehDT97pYgyYP6YMAoNKpUNOaCA_UOLGS1MOR_CefYl_Q5RRZQjg..&type=2&query=gemini 2.0&token=DF6742D9295FAB615B5A7250F5C0B85C5C9C6552675A7FDE
+title: 谷歌
+time: 2小时前
+abstract: 12月11日晚,谷歌正式发布最新版大模型
+user_id: 科技每日推送
+content: 12月11日晚，谷歌正式发布最新版大模型Gemini 2.0系列，表示这是他们迄今为止最强大的人工智能模型。
+目前谷歌对外开放的是Gemini 2.0 Flash体验版，相比于此前的1.5 Flash，2.0 Flash 在响应时间上有了进一步的优化，谷歌提到2.0 Flash在关键基准测试中甚至超过了1.5 Pro，速度是1.5 Pro的两倍。
+Gemini 2.0 Flash能够支持图片、视频和音频等多模态输入和输出，比如可以直接生成文本和图像的混合内容，原生生成可控的多语言文本转语音（TTS）音频。此外，2.0 Flash可原生调用Google Search、代码执行以及第三方用户定义的函数等工具。
+谷歌表示，会先将Gemini 2.0 模型开放给开发者和受信任的测试人员，并将其整合到产品中。
+•END•
+如需转载原创文章，请联系微信：KJMRTS88
+
+科技每日推送
+我们致力于分享人类的前沿科技！
+1938篇原创内容
+公众号
+欢迎点击科技每日推送视频号，看最新视频~
+↓↓↓
+科技每日推送
+12

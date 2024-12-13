@@ -1,0 +1,6 @@
+url: /link?url=dn9a_-gY295K0Rci_xozVXfdMkSQTLW6cwJThYulHEtVjXrGTiVgS5FLi4EgWb-a5N4o9B834rDSJwwyhsRcI1qXa8Fplpd9GONeb5JGqF1V5IJy4KCjTvDRTZOmWmWC03-ra1dq85fO-xnnMxaiJLmoJxRnfm3rFoEJFQllCExdjmj5qkbolPo7r0MgS--lyrU27GMZPIlZEB7woErfHrpBJ3Fyw_low4abCaF1WwckUNNVdcNWj62QBEydcvIUEAfhSOcUULdCy6umSSPEsg..&type=2&query=openai&token=D756F037E28C78AA8F96B86BE99BBA1090D997BC67595F78
+title:  正式发布 Sora,一文看懂
+time: 19小时前
+abstract: 文章来源于公众号:极客公园ID:GeekPark正如外界猜测的那样,在为期 12 天直播的第三天,
+user_id: 酷玩实验室
+content: 

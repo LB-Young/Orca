@@ -1,0 +1,48 @@
+url: /link?url=dn9a_-gY295K0Rci_xozVXfdMkSQTLW6cwJThYulHEtVjXrGTiVgS5FLi4EgWb-aspm5LYmOOC_IVPsd-072FlqXa8Fplpd9mwQlHeIxYwa3u0Bw7tRcqv0JUKTexMbvEt_8d_HDe3pnVmGYiZZrCGcZEeaOwYgL0SAbY26i9Yna6GPzqAdM05uXTJSXAFSChaXq8rywLMtS76iQ-5nf9rCRGbfsLDJU5Efhc2DO1faUFr0ZdftzNu90OsuMnQwidsp5d5k7H-dFkDr8IT4KYw..&type=2&query=gemini 2.0&token=DF6742D9295FAB615B5A7250F5C0B85C5C9C6552675A7FDE
+title: OpenAI还在挤牙膏,
+time: 11小时前
+abstract: 还在“12 Days of AI”活动中缓慢释出更新时,Google DeepMind 已经悄然发布了 
+user_id: 子非AI
+content:  你是否感觉，最近 AI 领域的新进展不够让人兴奋？当 OpenAI 还在“12 Days of AI”活动中缓慢释出更新时，Google DeepMind 已经悄然发布了 Gemini 2.0。这不仅仅是技术上的升级，更预示着 AI 发展方向的转变。Gemini 2.0 的发布，意味着 AI 将从信息处理走向自主行动，一个全新的智能体时代正在加速到来，直接引爆行业热点。
+子非AI
+子非AI，焉知AI之乐：分享AI的有趣应用和创新案例，让你了解AI的乐趣。
+291篇原创内容
+公众号
+去年，Gemini 1.0 的出现，展示了多模态 AI 的强大潜力，能够理解文本、视频、图像、音频和代码等多种信息。而现在，Gemini 2.0 以更强大的姿态到来。它不仅继承了多模态的优势，更重要的是，它将 AI 带入了智能体时代。这意味着，AI 将更像人类，具备理解、推理、规划和执行能力，成为真正的智能伙伴，而非简单的工具。
+Gemini 2.0：智能体的核心引擎
+Gemini 2.0 不仅是 Gemini 1.0 的简单升级，而是一次全面的技术跃迁。Gemini 2.0 Flash 作为首个发布的版本，其核心特点是低延迟和高性能。更重要的是，它原生支持图像和音频的输入与输出，这意味着 AI 不再局限于文字，可以更好地与人类进行交流。此外，Gemini 2.0 Flash 还具备强大的工具调用能力，能够调用 Google 搜索、代码执行等多种工具，自主完成任务。
+Gemini 2.0 Flash 的强大，源于其核心技术的突破。相比于 Gemini 1.5 Pro，Gemini 2.0 Flash 在关键基准测试中表现更优，速度提升了一倍。它不仅支持多种模态的输入和输出，还支持可控的文本到语音多语种音频，这为智能体时代的应用奠定了坚实的基础。目前，开发者可以通过 Google AI Studio 和 Vertex AI 的 Gemini API 来体验 Gemini 2.0 Flash 的强大。
+智能体原型：AI 的多种应用场景
+Gemini 2.0 的真正意义，在于它驱动的智能体原型，这些原型展示了 AI 在不同场景下的应用潜力。其中，Project Astra、Project Mariner 和 Jules 这三大原型最受关注。
+Project Astra 是一个通用 AI 助手，它不仅能理解你的语言，还能看懂周围的世界。它能记住你和它的对话，利用 Google 搜索、Lens 和地图等工具，帮你解决生活中的各种问题。
+Project Mariner 是一个浏览器智能体，它能理解浏览器屏幕上的内容，并自动完成网页任务，如填写表单、预定机票等。
+Jules 则是一个 AI 编程助手，它能理解代码，并帮助开发者解决问题、规划任务、自动生成代码。
+这些智能体原型正在接受测试，它们预示着 AI 将深入到我们生活的方方面面，为我们提供更智能的服务。
+02:52
+Project Astra：通用 AI 助手的未来
+Project Astra 的核心亮点在于它强大的“感知”能力。它可以通过手机摄像头看到周围的世界，理解你的语言，并做出相应的反应。它支持多种语言和口音，还能记住你和它的对话，提供个性化的服务。
+Project Astra 能够调用 Google Search、Lens 和 Maps 等工具，为你提供更全面的帮助。例如，你可以用它识别眼前的物体，查找相关信息；或者直接用语音导航到目的地。
+未来，Project Astra 有望集成到 Google 的更多产品中，例如 Gemini 应用和眼镜等。这使得 AI 能够真正融入你的生活，成为你不可或缺的智能伙伴。
+02:44
+Project Mariner：浏览器中的自动化助手
+Project Mariner 的核心能力在于它能够理解浏览器屏幕上的内容，包括像素和网页元素。通过 Chrome 扩展程序，它能够自动完成网页任务。
+Project Mariner 可以帮你预定机票、填写表单、网上购物等。在 WebVoyager 基准测试中，Project Mariner 取得了 83.5% 的领先成绩，这表明它在实际的网页任务中具有很高的准确性和可靠性。
+尽管目前它在速度和准确性方面仍有提升空间，但 Project Mariner 已经展现了未来智能体在浏览器中的应用潜力。
+02:14
+Jules：代码开发的 AI 加速器
+Jules 的核心价值在于它能理解代码，并根据开发者的指令，完成代码任务。
+Jules 可以直接集成到 GitHub 工作流程中，帮助程序员解决代码问题、制定开发计划、自动生成代码，大幅提高开发效率。
+Jules 的出现，预示着未来 AI 将在软件开发领域发挥更重要的作用，帮助开发者更高效地编写代码。
+00:35
+AI 在游戏及其他领域的应用
+除了上述应用场景，Gemini 2.0 还在游戏领域展现出巨大的潜力。基于 Gemini 2.0 开发的游戏智能体，能够理解游戏内容并提供建议，成为玩家的智能伙伴。
+此外，Google DeepMind 还在探索 AI 智能体在物理世界的应用潜力，利用 Gemini 2.0 的空间推理能力，开发能够帮助人类完成物理任务的智能体。
+
+AI 智能体的未来
+Gemini 2.0 的发布，标志着 AI 发展的一个重要里程碑。它不仅带来了技术上的突破，更重要的是，它将 AI 推向了智能体时代。我们正在迎来一个 AI 与人类协同发展的新未来，AI 将不再只是工具，而将成为我们生活中不可或缺的伙伴。
+AI 智能体将深入到我们生活的方方面面。未来，AI 的发展值得期待！
+相关链接
+• Gemini 2.0 官方博客: https://blog.google/technology/google-deepmind/google-gemini-ai-update-december-2024/
+• Google DeepMind 官网: https://deepmind.google/
+• Project Astra 相关介绍: https://deepmind.google/technologies/gemini/project-astra/
+• Project Mariner 相关介绍: http://deepmind.google/technologies/project-mariner

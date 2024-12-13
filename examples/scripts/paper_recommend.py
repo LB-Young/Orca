@@ -53,9 +53,10 @@ all_tools.update(other_tools)
 
 init_params = {
     "configs": config,
+    
     "memories": [],
     "debug_infos": [],
-    "variables": {"type_sets":['LLM','RAG','Agent','多模态','音频','计算机视觉'], "research_direction":['LLM','RAG','Agent','多模态']},
+    "variables": {"type_sets":['LLM','RAG','Agent','多模态','音频','计算机视觉','其它'], "research_direction":['LLM','RAG','Agent','多模态']},
     "tools": all_tools,
     "default_agent":{
         "flag":False,
@@ -65,6 +66,8 @@ init_params = {
             "medical_expert": "医疗专家",
             "computer_expert": "计算机专家",
                 }
+        "tools"
+        "agents"
             }
         }
 async def main():

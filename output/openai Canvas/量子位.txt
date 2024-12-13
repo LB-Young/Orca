@@ -1,0 +1,80 @@
+url: /link?url=dn9a_-gY295K0Rci_xozVXfdMkSQTLW6cwJThYulHEtVjXrGTiVgS5FLi4EgWb-aA5jX2GmcGPrSJwwyhsRcI1qXa8Fplpd99KoIoorzuwrzyV-cK8vBJtYC-GlsP-G_ElBr1eNqGJ9keVHO3MaxcS4Q0HB5GkHGsdXRaBIKLwJFapphJJCneu6SzBoKJbBHNa5jpUPUsvz6k8boZdUPHkJ_RiJN3JXMFc9Q9NAdW1zoOnrRfgtHjryuosyxgt3E1-lmfxF29e72CsG6-xMgzQ..&type=2&query=openai Canvas&token=D776C2967908FB310B0D24F7BFF679330C0E23ED67596366
+title: 重磅发布
+time: 2024-10-4
+abstract: 金磊 发自 凹非寺量子位 | 公众号 QbitAI今天凌晨,
+user_id: 量子位
+content: 金磊 发自 凹非寺
+量子位 | 公众号 QbitAI
+今天凌晨，OpenAI又有了一个大动作——
+发布Canvas，一个与ChatGPT合作写作和编程的新界面！
+这个全新的界面，是由OpenAI的GPT-4o来构建，需要在模型选择栏中单独pick出来使用——“GPT-4o with canvas”。
+在Canvas模式之下，就不仅仅是简单对话的过程了，而是允许用户可以对生成的内容进行二次创作和编排，用官方的话来说就是：
+就像文案、代码编辑器一样。
+例如我们上传一个文件，并在ChatGPT给出生成内容之后，在界面的右下角就有一个“编辑”的按钮：
+这个按钮展开之后有五个功能，分别是：
+编辑建议（Suggest edits）
+调整上下文长度（Adjust the length）
+更改阅读水平（Reading level）
+添加最终润色（Add final polish）
+添加表情包（Add emojis）
+以第一个“编辑建议”功能为例，现在只需要选择要修改的内容片段，然后点击“应用（Apply）”，这段文字就会被重新生成：
+文章标题也可以用“划词”的方式，按照自己的要求“回炉重造”且可微调：
+这种新模式一推出，立即引发了众多网友的热议。
+例如沃顿商学院教授Ethan Mollick给予了高度的评价：
+它把纯粹的聊天机器人转向了一个新的角度，更像是跟同事一起工作。
+也有网友从个人使用体验角度出发，认为这是“今年迄今为止最大的ChatGPT更新”。
+不过眼尖的网友也发现，这不就是Claude的Artifacts功能么……
+据了解，Canvas已经面向全球ChatGPT Plus和Team用户推出，下周将再向Enterprise和Edu用户发布权限。
+那么Canvas还有哪些玩法？我们继续往下看。
+和ChatGPT一起写作
+刚才我们展示的是Canvas写作中的“编辑”功能，接下来我们再看下“调整上下文长度”。
+这个功能如其名，就是可以把文档长度编辑得更短或更长，一共有五档：当前长度、更长、最长、更短、最短。
+在选择想要的长度之后，ChatGPT就会对全文逐字逐段地进行更改：
+而“更改阅读水平”功能就有点厉害了，包含从幼儿园、初中、当前水平、高中、大学和研究生六种水平。
+只需选择你想要的阅读水平，ChatGPT就会把整篇文章调整为合适的内容：
+“添加最终润色”功能，则是会对整篇文章做一个修改，包括检查语法、清晰度和一致性等。
+“添加表情包”这个玩法就比较有意思了，可以把emoji们添加到文章中，让内容变得更加生动有趣。
+例如一位网友便展示了他的成果：
+Sam Altam似乎对这个功能情有独钟，就在刚刚，他还在社交平台上发布了一个投票——添加表情包是不是OpenAI最好的功能。
+对此，有61%的用户投出了“yes”：
+不过也有网友在Altman的帖子下面提出了一个问题：
+如何确保打开Canvas功能？除非我要求他写一篇博客。
+在量子位的实测过程中也确实出现了这个问题，OpenAI接下来或许对此会进行优化。
+和ChatGPT一起编程
+除了写作之外，Canvas另一个功能就是编程了，整体来看包含以下五种功能：
+审查代码（Review code）
+添加日志（Add logs）
+添加注释（Add comments）
+修复bug（Fix bugs）
+转换语言（Port to a language）
+例如我们先给ChatGPT提出一个要求：
+帮我用Rust写一个API Webserver。
+在Canvas中，我们针对某个代码片段，可以通过类似划词的方式，让它按要求对代码进行更改：
+对特别细节的内容，我们也可以手动进行更改：
+对于审查代码、添加日志、添加注释、修复bug这四个功能，只需要点击一下，就可以全局进行更改。
+值得注意的是，更改编程语言这个功能，目前提供了JavaScript、TypeScript、Python、Java、C++和PHP这几个选项。
+让AI成为协作者
+对于Canvas功能，OpenAI通过20多项自动化内部评估来衡量进展情况，使用了新颖的合成数据生成技术，例如从 OpenAI o1-preview 中提取输出，以针对其核心行为对模型进行后训练。
+这种方法的优势是能够快速解决写作质量和新用户交互问题，而无需依赖人工生成的数据。
+而对于如何触发Canvas，也正如我们刚才所述，目前OpenAI的策略还是较为严格，为的就是能跟正常的问答区分开来。
+其次就是在Canvas界面中，如何决定让AI全局重写还是局部更改，OpenAI目前的策略是，如果想要局部更改，就可以通过类似划词的方式进行；而右下角的所有功能，则是倾向于全局重写。
+至于问答Prompt和Canvas这两种方法谁的生成质量更高，OpenAI也做了一番比较：
+Canvas模型比带有提示指令的zero-shot GPT-4o准确率高30%，质量高16%。
+除此之外，Canvas的构建也是借助了2个开源项目完成，原作者现身表示得到了OpenAI的赞助：
+那么你觉得OpenAI新出的Canvas功能如何呢？欢迎体验过后在评论区留言讨论。
+参考链接：
+[1]https://openai.com/index/introducing-canvas/
+[2]https://x.com/OpenAI/status/1841887709566271896
+[3]https://x.com/sama/status/1841992483024339236
+— 完 —
+评选征集中
+「2024人工智能年度评选」
+量子位2024人工智能年度评选已开启报名通道，评选从企业、人物、产品三大维度设立了5类奖项。
+欢迎扫码报名评选！评选结果将于12月MEET2025智能未来大会公布，期待与数百万从业者共同见证荣誉时刻。
+点这里👇关注我，记得标星哦～
+量子位
+追踪人工智能新趋势，关注科技行业新突破
+3181篇原创内容
+公众号
+一键三连「点赞」、「分享」和「在看」
+科技前沿进展日日相见 ~ 
