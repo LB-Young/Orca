@@ -1,6 +1,0 @@
-step 1:
-    agent_call('MultA',我在中国上海出差，请查询今天的天气后，然后写一首与今天天气有关的诗要有诗名，并评论一下这首诗写的好不好。)
-
-step 3:
-    tool_call('send_email', texts={1}通过我的邮箱发送给客户，主题为诗集。我的邮箱为“lby15356@gmail.com”，密码为“seulby356..”，客户邮箱为“Young.liu@aishu.cn”)
-        

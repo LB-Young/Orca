@@ -1,9 +1,9 @@
-from Orca.vta.variables_pool import VariablesPool
-from Orca.vta.tools_agents_pool import ToolsAgentsPool
+from Orca.register.variables_pool import VariablesPool
+from Orca.register.tools_agents_pool import ToolsAgentsPool
 from Orca.debug.debug_info import DebugInfo
-from Orca.config import Config
-from Orca.executor.executor import Executor
-from Orca.executor.agents.agents import Agent
+from Orca.register.config import Config
+from Orca.executor import Executor
+from Orca.agents.agents import Agent
 
 class OrcaExecutor:
     def __init__(self):
@@ -12,7 +12,6 @@ class OrcaExecutor:
         self.variables_pool = VariablesPool()
         self.tools_agents_pool = ToolsAgentsPool()
 
-    
     def init_executor(self, init_parmas):
         for key, value in init_parmas.items():
             if key == "debug_infos":

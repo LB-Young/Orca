@@ -6,7 +6,7 @@
 import os
 import sys
 import json
-sys.path.append(r"F:\Cmodels\Orca\src")
+sys.path.append(r"F:\Cmodels\Orca_branch\0.1.3\Orca\src")
 from dotenv import load_dotenv
 from Orca import OrcaExecutor
 from Orca import all_tools
@@ -43,7 +43,7 @@ config = {
     "together_llm_model_name": together_llm_model_name
 }
 
-orca_prompt_path = r"F:\Cmodels\Orca\examples\0.1.2\function_init.orca"
+orca_prompt_path = r"F:\Cmodels\Orca_branch\0.1.3\Orca\examples\orca_prompts\define_agent.orca"
 with open(orca_prompt_path, "r", encoding="utf-8") as f:
     content = f.read()
 
@@ -61,7 +61,9 @@ init_params = {
             "law_expert": "法律专家",
             "medical_expert": "医疗专家",
             "computer_expert": "计算机专家",
-                }
+                },
+        "tools":"default",
+        "agents":"default",
             }
         }
 async def main():

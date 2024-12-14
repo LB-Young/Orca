@@ -1,0 +1,3 @@
+@agent_init(roles = {"mechanical_expert":"机械专家","history_expert":"历史专家","math_expert":"数学专家","material_expert":"材料专家"}, tools = "default",  describe="一个高考咨询专家")->new_agent
+
+@new_agent(我是高考生，现在想要选专业，但是不知道选什么专业。请你介绍一下机械、历史、数学三个专业分别有什么优点和缺点。) -> result

@@ -1,4 +1,4 @@
-from .executor.tool_box import all_tools
+from .tool_box import all_tools
 from Orca.Orca import OrcaExecutor
 
 
