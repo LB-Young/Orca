@@ -1,0 +1,3 @@
+@get_youtube_caption("提取视频“$video_url”的字幕内容") -> video_caption
+请将以下内容翻译为中文:$video_caption -> translated_caption
+@save2local("content"="$translated_caption", "path"="$final_output_path") -> caption_path
