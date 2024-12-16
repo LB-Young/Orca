@@ -6,7 +6,7 @@
 import os
 import sys
 import json
-sys.path.append(r"F:\Cmodels\Orca_branch\main\Orca\src")
+sys.path.append(r"F:\Cmodels\Orca_branch\0.1.3\Orca\src")
 from dotenv import load_dotenv
 from Orca import OrcaExecutor
 from Orca import all_tools
@@ -43,16 +43,23 @@ config = {
     "together_llm_model_name": together_llm_model_name
 }
 
-orca_prompt_path = r"F:\Cmodels\Orca_branch\main\Orca\examples\orca_prompts\if_llm_judge.orca"
+orca_prompt_path = r"F:\Cmodels\Orca_branch\main\Orca\examples\youtube_caption\youtube_caption.orca"
 with open(orca_prompt_path, "r", encoding="utf-8") as f:
     content = f.read()
 
+sys.path.append(r"F:\Cmodels\Personal_project\tools_set")
+from tools import other_tools
+all_tools.update(other_tools)
+variables ={
+    "video_url": "https://www.youtube.com/watch?v=WQQdd6qGxNs",
+    "final_output_path":f"./output/youtube_catption/WQQdd6qGxNs.txt"
+    }
 
 init_params = {
     "configs": config,
     "memories": [],
     "debug_infos": [],
-    "variables": {"input": "1"},
+    "variables": variables,
     "tools": all_tools,
     "default_agent":{
         "flag":False,

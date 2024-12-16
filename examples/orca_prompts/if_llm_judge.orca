@@ -1,0 +1,9 @@
+@condition_judge("input"="请介绍以下gpt-3", "categories"=["gpt4", "gpt3", "gpt2"]) -> tag
+IF $tag == "gpt4": 
+    介绍一下gpt4 -> introduction
+elif $tag == "gpt3":
+    介绍一下gpt3 -> introduction
+else:
+    介绍一下gpt2 -> introduction
+END
+判断一下“$introduction”是介绍什么内容的 ->result 
