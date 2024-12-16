@@ -9,8 +9,11 @@ def get_topic(a):
 
 ```workflow  生成情报数据
 def flow1(topic):
-你是一位情报领域的专家，擅长处理各种情报数据。请生成3条化学品价格相关的情报数据，每条数据字数在50-100字, 以list返回，如['数据1','数据2']。-> result(list)
-return result
+你是一位情报领域的专家，擅长处理各种情报数据。请生成3条$topic相关的情报数据，每条数据字数在50-100字, 以list返回，如['数据1','数据2']。-> result(list)
+FOR $item in $result:
+判断“$item”是关于物理专业哪个领域。->> classify(list)
+END
+return classify
 ```
 
 @flow1("topic"="$topic") -> result

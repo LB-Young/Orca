@@ -1,4 +1,4 @@
-import re
+import copy
 from Orca.orca_language_analysis import PromptAnalysis
 from Orca.segment_analysis import *
 from Orca.segment_executor import *
@@ -80,7 +80,13 @@ class Executor:
                 # 递归执行
                 # TODO （未实现）
                 all_states, execute_state = await self.execute(analysis_result['analysis_result']['object'], all_states=all_states)
-                result = all_states['variables_pool'].get_variable('final_result')
+                return_variable_name = analysis_result['analysis_result']['final_result_variable']
+                return_variable_value = all_states['variables_pool'].get_variables(return_variable_name)
+                return_variable_type = type(return_variable_value)
+                all_states['copy_variables_pool'].add_variable(return_variable_name, return_variable_value, return_variable_type)
+                all_states['variables_pool'] = copy.deepcopy(all_states['copy_variables_pool'])
+                del all_states['copy_variables_pool'] 
+                result = return_variable_value
             elif analysis_result['analysis_result']['type'] == "agent":
                 # agent执行
                 self.agent_call_executor = AgentCallExecutor()
@@ -191,6 +197,10 @@ class Executor:
                 return pure_prompt, res_variable_name, variable_type, add_type
             else:
                 return pure_prompt, None, None, None
+        elif content.strip().startswith("```workflow"):
+            pure_prompt = content.strip()
+            # pure_prompt = content[content.index("def", 1):].strip()[:-3].strip()
+            return pure_prompt, None, None, None
         else:
             if "->>" in content:
                 add_type = "->>"

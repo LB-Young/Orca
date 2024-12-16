@@ -1,4 +1,5 @@
 import json
+import copy
 import inspect
 from Orca.segment_executor.llm_client import LLMClient
 from Orca.utils.variable_replace import replace_variable
@@ -52,9 +53,12 @@ class FunctionCallAnalysis:
                     raise Exception("Can parser extracted_params to json")
             if isinstance(all_tools[module_name]['object'], str) and all_tools[module_name]['type'] == "python_init":
                 all_tools[module_name]['object'] = await create_function_from_string(all_tools[module_name]['object'])
-            
             if isinstance(all_tools[module_name]['object'], str):
-                pass
+                final_result_variable = all_tools[module_name]['object'].rsplit("return", 1)[-1].strip()
+                workflow_content = all_tools[module_name]['object'].rsplit("return", 1)[0].strip()
+                workflow_content = workflow_content.split("\n",1)[1].strip()
+                all_tools[module_name]['object'] = workflow_content
+                extracted_params = params_dict
             else:
                 module_need_params = inspect.signature(all_tools[module_name]['object'])
                 extracted_params = {}
@@ -63,11 +67,14 @@ class FunctionCallAnalysis:
                 for name, param in module_need_params.parameters.items():
                     extracted_params[name] = params_dict.get(name, param.default)
             if all_tools[module_name]['type'] == "workflow_init":
+                all_states['copy_variables_pool'] = copy.deepcopy(all_states['variables_pool'])
+                all_states['variables_pool'].init_variables(extracted_params)
                 result = {
                     "analysis_result":{
-                        "object":all_tools[module_name]['function_content'],
+                        "object":all_tools[module_name]['object'],
                         "params":extracted_params,
-                        "type": "workflow_init"
+                        "type": "workflow_init",
+                        "final_result_variable":final_result_variable
                     },
                     "all_states":all_states
                 }
