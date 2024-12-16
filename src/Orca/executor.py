@@ -78,7 +78,6 @@ class Executor:
             analysis_result = await self.function_call.analysis(pure_prompt, all_states)
             if analysis_result['analysis_result']['type'] == "workflow_init":
                 # 递归执行
-                # TODO （未实现）
                 all_states, execute_state = await self.execute(analysis_result['analysis_result']['object'], all_states=all_states)
                 return_variable_name = analysis_result['analysis_result']['final_result_variable']
                 return_variable_value = all_states['variables_pool'].get_variables(return_variable_name)
