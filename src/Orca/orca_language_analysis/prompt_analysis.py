@@ -14,7 +14,6 @@ class PromptAnalysis:
         # print("需要解析的prompt：", prompt)
 
         self.prompt = prompt.strip()
-        
         # 定义所有结构的正则模式
         patterns = [
             (r'FOR\s+.*?END\s*', 'FOR'),
@@ -24,7 +23,7 @@ class PromptAnalysis:
             (r'@agent_init\([^)]*\)\s*(->|->>) *[a-zA-Z0-9_]+\s*(?:\((.*?)\))?\s*', 'agent_init'),
             (r'@[a-zA-Z_][a-zA-Z0-9_]*\([^)]*\)\s*(->|->>) *[a-zA-Z0-9_]+\s*?(?:\((.*?)\))?\s*', 'function'),
             (r'```\s*.*?```\s*', 'function_init'),
-            (r'(?:CODE:\s*)?[^-]*(->|->>) *[a-zA-Z0-9_]+\s*(?:\((.*?)\))?\s*', 'prompt')
+            (r'(?:CODE:\s*)?.*?(->|->>) *[a-zA-Z0-9_]+\s*(?:\((.*?)\))?\s*', 'prompt')
         ]
         # 找出所有匹配及其位置
         matches = []

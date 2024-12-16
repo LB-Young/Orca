@@ -6,7 +6,7 @@
 import os
 import sys
 import json
-sys.path.append(r"F:\Cmodels\Orca_branch\0.1.3\Orca\src")
+sys.path.append(r"F:\Cmodels\Orca_branch\main\Orca\src")
 from dotenv import load_dotenv
 from Orca import OrcaExecutor
 from Orca import all_tools
@@ -43,7 +43,7 @@ config = {
     "together_llm_model_name": together_llm_model_name
 }
 
-orca_prompt_path = r"F:\Cmodels\Orca_branch\0.1.3\Orca\examples\orca_prompts\define_agent.orca"
+orca_prompt_path = r"F:\Cmodels\Orca_branch\main\Orca\examples\orca_prompts\prompt.orca"
 with open(orca_prompt_path, "r", encoding="utf-8") as f:
     content = f.read()
 
