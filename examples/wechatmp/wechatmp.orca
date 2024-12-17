@@ -2,7 +2,7 @@ default_agent:False
 variabes:
 {
     "topic":"gemini 2.0" , 
-    "final_output_artical_path":f"./output/{topic}.txt"
+    "final_output_artical_path":f"F:/logs/orca/output/wechatmp/{topic}.txt"
 }
 orca:
 @wechatmp_spider("查询5篇关于“$topic”的相关内容") -> reference_path(list)
