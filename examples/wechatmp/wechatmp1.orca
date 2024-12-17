@@ -1,3 +1,10 @@
+default_agent:False
+variabes:
+{
+    "topic":"gemini 2.0" , 
+    "final_output_artical_path":f"./output/{topic}.txt"
+}
+orca:
 @wechatmp_spider("查询8篇关于“$topic”的相关内容") -> reference_path(list)
 @dir_reader(读取“$reference_path”文件夹下全部内容) -> reference_content(str)
 我现在要写一篇关于我想要写一篇关于“$topic”的推送，请帮我写一份大纲。以下是你可以参考的资料：\n$reference_content\n\n要求：\n1、你写的大纲要突出项目的重点。\n2、以markdown形式给出最后的大纲。\n3、需要给出一个具有吸引力的文章标题。\n4、你写的大纲可以借鉴参考内容的大纲。 -> outline

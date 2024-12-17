@@ -1,3 +1,10 @@
+default_agent:False
+variabes:
+{
+    "topic":"gemini 2.0" , 
+    "final_output_artical_path":f"./output/{topic}.txt"
+}
+orca:
 @wechatmp_spider("查询5篇关于“$topic”的相关内容") -> reference_path(list)
 @dir_reader(读取“$reference_path”文件夹下全部内容) -> reference_content(str)
 我现在要写一篇关于我想要写一篇关于“$topic”的文章，请帮我写一篇2000字左右的文章。以下是你可以参考的资料：\n$reference_content\n\n要求：\n1、你写的文章要具有完整性，并且突出重点。\n2、以markdown形式给出最后的文章内容。\n3、需要给出一个具有吸引力的文章标题。\n4、你可以对这些参考内容进行整合，但是不要大段落的抄袭,你可以对原来的语句进行重新组织，确保与参考内容的相似度不超过5%。 -> artical

@@ -1,3 +1,9 @@
+default_agent:False
+variabes:
+{
+    "input":"1"    
+}
+orca:
 ```python #获取主题
 def get_topic(a):
     if "化学" in a:

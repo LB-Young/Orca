@@ -1,3 +1,33 @@
-@get_youtube_caption("提取视频“$video_url”的字幕内容") -> video_caption
+default_agent:False
+variabes:
+{
+    "video_url": "https://www.youtube.com/watch?v=OzgNJJ2ErEE",
+    "translate_path":"./output/youtube_caption/OzgNJJ2ErEE/translate_path.txt",
+    "summary_path":"./output/youtube_caption/OzgNJJ2ErEE/summary_path.txt"
+}
+orca:
+@get_youtube_caption("提取视频“$video_url”的字幕内容") -> video_caption(str)
 请将以下内容翻译为中文:$video_caption -> translated_caption
-@save2local("content"="$translated_caption", "path"="$final_output_path") -> caption_path
+@save2local("content"="$translated_caption", "path"="$translate_path") -> caption_path
+我提取了一个视频的字幕，你需要按照语义对视频内容分段。字幕内容：\n$video_caption\n\n请分段，最多不超过六段，分段结果以list形式返回，如['第一段内容','第二段内容',...] -> segmented_caption
+我收集了一段演讲，并且已经对内容做了分段，你需要对每一段内容做一句话总结，然后再分点列出要点。分段内容：\n$segmented_caption\n\n结果以markdown形式返回如：
+[
+    {
+        "第一段的一句话总结":"总结的结果"
+        "第一段的要点"：
+            1.第一个要点
+            2.第二个要点
+            ……
+    }
+    {
+        "第二段的一句话总结":"总结的结果"
+        "第二段的要点"：
+            1.第一个要点
+            2.第二个要点
+            ……
+    }
+    ……
+
+]
+ -> segmented_content
+@save2local("content"="$segmented_content", "path"="$summary_path") -> caption_path

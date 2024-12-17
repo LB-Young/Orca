@@ -1,3 +1,9 @@
+default_agent:False
+variabes:
+{
+    "input":"1" 
+}
+orca:
 IF $input == "1": 
     介绍一下gpt4 -> introduction
 elif $input == "2":

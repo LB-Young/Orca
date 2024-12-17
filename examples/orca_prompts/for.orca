@@ -1,3 +1,10 @@
+default_agent:False
+variabes:
+{
+    "input":"1"    
+}
+orca:
+
 你是一位情报领域的专家，擅长处理各种情报数据。请生成3条化学品价格相关的情报数据，每条数据字数在50-100字, 以list返回，如['数据1','数据2']。-> result(list)
 FOR $item in $result:
 对$item进行分类，分类规则如下：   

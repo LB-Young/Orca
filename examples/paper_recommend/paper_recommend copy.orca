@@ -1,3 +1,11 @@
+default_agent:False
+variabes:
+{
+    "type_sets":['LLM','RAG','Agent','多模态','音频','计算机视觉','其它'], 
+    "research_direction":['LLM','RAG','Agent','多模态']
+}
+orca:
+
 @paper_with_code_search("搜索10篇论文") -> papers(list)
 IF $papers == []:
 @send_email("content"="今天未更新论文！", "subject"="daily paper recommend", "to"="lby15356@gmail.com") -> email

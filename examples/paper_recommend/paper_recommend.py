@@ -7,6 +7,9 @@ import os
 import sys
 import json
 sys.path.append(r"F:\Cmodels\Orca_branch\0.1.3\Orca\src")
+sys.path.append(r"F:\Cmodels\Personal_project\tools_set")
+
+
 from dotenv import load_dotenv
 from Orca import OrcaExecutor
 from Orca import all_tools
@@ -45,9 +48,17 @@ config = {
 
 orca_prompt_path = r"F:\Cmodels\Orca_branch\0.1.3\Orca\examples\orca_prompts\paper_recommend.orca"  # 输入workflow prompt路径
 with open(orca_prompt_path, "r", encoding="utf-8") as f:
-    content = f.read()
+    orca_file = f.read()
 
-sys.path.append(r"F:\python project\tools_set")
+
+content = orca_file.split("orca:", 1)[-1].strip()
+variables = json.loads(orca_file.split("orca:", 1)[0].strip().split("variabes:", 1)[-1].strip())
+
+if "false" in orca_file.split("orca:", 1)[0].split("variabes:", 1)[0] or "False" in orca_file.split("orca:", 1)[0].split("variabes:", 1)[0]:
+    agent_flag = False
+else:
+    agent_flag = True
+
 from tools import other_tools
 all_tools.update(other_tools)
 
@@ -56,10 +67,10 @@ init_params = {
     
     "memories": [],
     "debug_infos": [],
-    "variables": {"type_sets":['LLM','RAG','Agent','多模态','音频','计算机视觉','其它'], "research_direction":['LLM','RAG','Agent','多模态']},
+    "variables": variables,
     "tools": all_tools,
     "default_agent":{
-        "flag":False,
+        "flag":agent_flag,
         "roles": {
             "finance_expert": "金融专家",
             "law_expert": "法律专家",

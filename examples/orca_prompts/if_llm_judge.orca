@@ -1,4 +1,10 @@
-@condition_judge("input"="请介绍以下gpt-3", "categories"=["gpt4", "gpt3", "gpt2"]) -> tag
+default_agent:False
+variabes:
+{
+    "input":"请介绍以下gpt-3" 
+}
+orca:
+@condition_judge("input"="$input", "categories"=["gpt4", "gpt3", "gpt2"]) -> tag
 IF $tag == "gpt4": 
     介绍一下gpt4 -> introduction
 elif $tag == "gpt3":

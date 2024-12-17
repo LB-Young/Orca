@@ -1,3 +1,9 @@
+default_agent:False
+variabes:
+{
+    "input":"1"    
+}
+orca:
 总共有多少种排序方式,以list形式返回三个如['method1','method2']。 -> sort_methods(list)
 FOR $item in $sort_methods:
     @google_search(搜索2篇关于$item的网页) -> blogs

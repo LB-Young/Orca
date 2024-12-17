@@ -7,6 +7,9 @@ import os
 import sys
 import json
 sys.path.append(r"F:\Cmodels\Orca_branch\0.1.3\Orca\src")
+sys.path.append(r"F:\Cmodels\Personal_project\tools_set")
+
+
 from dotenv import load_dotenv
 from Orca import OrcaExecutor
 from Orca import all_tools
@@ -45,15 +48,18 @@ config = {
 
 orca_prompt_path = r"F:\Cmodels\Orca_branch\main\Orca\examples\youtube_caption\youtube_caption.orca"
 with open(orca_prompt_path, "r", encoding="utf-8") as f:
-    content = f.read()
+    orca_file = f.read()
 
-sys.path.append(r"F:\Cmodels\Personal_project\tools_set")
 from tools import other_tools
 all_tools.update(other_tools)
-variables ={
-    "video_url": "https://www.youtube.com/watch?v=WQQdd6qGxNs",
-    "final_output_path":f"./output/youtube_catption/WQQdd6qGxNs.txt"
-    }
+
+content = orca_file.split("orca:", 1)[-1].strip()
+variables = json.loads(orca_file.split("orca:", 1)[0].strip().split("variabes:", 1)[-1].strip())
+
+if "false" in orca_file.split("orca:", 1)[0].split("variabes:", 1)[0] or "False" in orca_file.split("orca:", 1)[0].split("variabes:", 1)[0]:
+    agent_flag = False
+else:
+    agent_flag = True
 
 init_params = {
     "configs": config,
@@ -62,13 +68,8 @@ init_params = {
     "variables": variables,
     "tools": all_tools,
     "default_agent":{
-        "flag":False,
-        "roles": {
-            "finance_expert": "金融专家",
-            "law_expert": "法律专家",
-            "medical_expert": "医疗专家",
-            "computer_expert": "计算机专家",
-                },
+        "flag":agent_flag,
+        "roles": {},
         "tools":"default",
         "agents":"default",
             }

@@ -1,3 +1,10 @@
+default_agent:False
+variabes:
+{
+    "input":"1"    
+}
+orca:
+
 IF $input == "1": 
     @exit(msg="步骤 1运行结束,退出程序！")
 elif $input == "2":
