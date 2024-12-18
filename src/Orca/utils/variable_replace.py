@@ -1,11 +1,13 @@
 import re
+import logging
 
+logger = logging.getLogger(__name__)
 
 async def replace_variable(prompt, all_states):
     prompt_variable_pattern = re.compile(r'\$[a-zA-Z_][a-zA-Z0-9_]*(?:(?:\.[a-zA-Z_][a-zA-Z0-9_]*)|(?:\[\d+\]))*')
     # prompt_variable_pattern = re.compile(r'\$[a-zA-Z0-9_]+')
     matches = prompt_variable_pattern.findall(prompt)
-    print(matches)
+    logger.debug(matches)
     replace_dict = {}
     for match in matches:
         variable_name = match[1:]

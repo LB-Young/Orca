@@ -1,9 +1,13 @@
 import json
 import copy
+import logging
 import inspect
 from Orca.segment_executor.llm_client import LLMClient
 from Orca.utils.variable_replace import replace_variable
 from Orca.utils.str_2_function import create_function_from_string
+
+logger = logging.getLogger(__name__)
+
 class FunctionCallAnalysis:
     def __init__(self):
         pass
@@ -50,6 +54,7 @@ class FunctionCallAnalysis:
                 try:
                     params_dict = json.loads(extracted_params)
                 except:
+                    logger.error(extracted_params)
                     raise Exception("Can parser extracted_params to json")
             if isinstance(all_tools[module_name]['object'], str) and all_tools[module_name]['type'] == "python_init":
                 all_tools[module_name]['object'] = await create_function_from_string(all_tools[module_name]['object'])

@@ -1,6 +1,9 @@
 import re
 from Orca.segment_executor.llm_call_executor import ModelMessage, LLMCallExecutor, LLMClient
 from Orca.utils.variable_replace import replace_variable
+import logging
+
+logger = logging.getLogger(__name__)
 
 class BranchAnalysis:
     def __init__(self):
@@ -62,16 +65,15 @@ class BranchAnalysis:
         return execute_content
 
     async def condition_judge(self, condition_content):
-        print("condition_content", condition_content)
+        logger.debug("condition_content", condition_content)
         try:
             # 将a替换到条件字符串中，然后执行判断
             result = eval(condition_content)
-            print("result", result)
+            logger.debug("result", result)
             return result
         except Exception as e:
             # 处理可能的异常
-            print(f"Error evaluating condition: {e}")
-            print(False)
+            logger.error(f"Error evaluating condition: {e}")
             return False
 
     async def parser_branch_content(self, content):

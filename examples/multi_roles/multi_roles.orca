@@ -1,0 +1,8 @@
+default_agent:False
+variabes:
+{}
+orca:
+
+
+@agent_init(roles = {"computer_expert":"计算机专家", "mechanical_expert":"机械专家","history_expert":"历史专家","math_expert":"数学专家","material_expert":"材料专家"}, tools=["code_execute"],  describe="一个专家团队")->new_agent
+@new_agent($query) -> result

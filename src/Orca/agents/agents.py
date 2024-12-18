@@ -28,15 +28,25 @@ class Agent:
 - 你需要将问题以最合适的角色回答，如果没有合适的角色则直接以自己的角色回答。
 - 你必须使用“=>@xxx:”的格式来触发对应的角色。
 - 你需要将问题拆分成详细的多个步骤，并且使用不同的角色回答。
-- 当需要调用工具的时候，你需要使用"=>$tool_name: {key:value}"的格式来调用工具,其中参数为严格的json格式，例如"=>$send_email: {subject: 'Hello', content: 'This is a test email'}"。
+- 当需要调用工具的时候，你需要使用"=>#tool_name: {key:value}"的格式来调用工具,其中参数为严格的json格式，例如"=>#send_email: {subject: 'Hello', content: 'This is a test email'}"。
+- 调用工具的时候，工具后列出的参数都是必须参数，所有参数都需要被赋值不能有遗漏。
+
+## Notes
+- 注意：优先使用tool回答问题，只有在tool无法回答问题的时候才使用role。
 
 ## Workflows：
-- 分析用户问题，如果当前问题是其他角色擅长领域时触发对应的角色回答当前问题，如果没有与问题相关的角色则以自己的角色回答。
-- 如果触发其他角色解答，使用以下符号进行触发：“=>@xxx:”，例如“=>@expert:”表示以专家角色开始发言,“=>@orca_agent:”表示不需要调用团队成员而是以自己的角色回答。
-- 每一次当你触发了不同的角色之后，你需要切换到对应的角色进行回答。如“=>@law_expert:法律上的解释是……”
-- 如果需要调用工具来处理，需要使用以下符号进行触发：“=>$tool_name: {key:value}”，例如“=>$send_email: {subject: 'Hello', content: 'This is a test email'}”。
-- 每一次触发了不同的tool之后，你需要停止作答，等待用户调用对应的tool处理之后，将tool的结果重新组织语言后再继续作答，新的答案要接着“=>$tool_name”前面的最后一个字符继续生成结果，要保持结果通顺。
-当前的问题为：{prompt}\n\n请回答这个问题。
+1、分析问题
+    1.1、判断问题是否可以通过调用tool解决；如果可以，则调用tool解决（步骤2）。
+    1.2、判断问题是否可以通过调用Roles中的角色解决；如果可以，则调用role解决（步骤3）。
+    1.3、如果没有与问题相关的tool和role、则以自己的角色回答（步骤3）。
+2、调用tool
+    2.1、如果需要调用工具来处理，需要使用以下符号进行触发：“=>#tool_name: {key:value}”，例如“=>#send_email: {subject: 'Hello', content: 'This is a test email'}”。
+    2.2、每一次触发了不同的tool之后，你需要停止作答，等待用户调用对应的tool处理之后，将tool的结果重新组织语言后再继续作答，新的答案要接着“=>#tool_name”前面的最后一个字符继续生成结果，要保持结果通顺。
+3、调用role
+    3.1、如果触发其他角色解答，使用以下符号进行触发：“=>@xxx:”，例如“=>@expert:”表示以专家角色开始发言,“=>@orca_agent:”表示不需要调用团队成员而是以自己的角色回答。
+    3.2、每一次当你触发了不同的角色之后，你需要切换到对应的角色进行回答。如“=>@law_expert:法律上的解释是……”
+
+当前的问题为：{prompt}\n。
 """
         self.roles_info = ""
         for key, value in roles.items():
@@ -53,6 +63,7 @@ class Agent:
 
     async def execute(self, prompt, all_states=None, stream=False):
         prompt = await replace_variable(prompt, all_states)
+
         prompt = self.role.replace("{prompt}", prompt).strip()
         result = await self.llm_call_executor.execute(content=prompt, all_states=all_states, stream=stream, variable_replaced=True)
         result = result['execute_result']['result']
@@ -64,31 +75,53 @@ class Agent:
             if tool_Flag:
                 tool_messages += chunk.choices[0].delta.content
                 continue
-            if ":" in chunk.choices[0].delta.content and "=>$" in all_answer:
+            if ":" in chunk.choices[0].delta.content and "=>#" in all_answer:
                 tool_Flag = True
                 tool_messages += chunk.choices[0].delta.content
                 yield ": "
                 continue
             yield chunk.choices[0].delta.content
         if tool_Flag:
-            tool_messages = all_answer.split("=>$")[-1]
+            tool_messages = all_answer.split("=>#")[-1]
             result = await self.tool_run(tool_message=tool_messages, all_states=all_states)
-            for item in str(result+"\n"):
+            for item in str(result)+"\n":
                 yield item
-            query = prompt + "\n" + "已经执行内容:" + all_answer + "\n" + "工具执行结果:" + result
-            async for item in self.execute(qeury=query):
+            prompt = prompt + "\n" + "已经执行内容:" + all_answer + "\n" + "工具执行结果:" + result
+            async for item in self.execute(prompt=prompt, all_states=all_states, stream=stream):
                 yield item
 
+    async def re_params_extract(self, params_content):
+        params_content = params_content.strip()
+        params = {}
+        for param in params_content.split(","):
+            param = param.strip()
+            key, value = param.split(":", 1)
+            params[key.strip()] = value.strip()
+        return params
+
+    async def params_extract(self, params_content):
+        stack = 0
+        params_content = params_content.strip()
+        if params_content[0] != "{":
+            raise Exception("params_content extract error, can not be parsed to json")
+        json_end = 0
+        for index, char in enumerate(params_content):
+            if char == "{":
+                stack += 1
+            elif char == "}":
+                stack -= 1
+            if stack == 0:
+                json_end = index + 1
+                break
+        try:
+            return json.loads(params_content[:json_end].replace("'", '"'))
+        except:
+            re_extracted_params = await self.re_params_extract(params_content=params_content[:json_end])
+            return re_extracted_params
+
     async def tool_run(self, tool_message, all_states=None):
-        analysis_result = await self.tool_call_executor.analysis(tool_message, all_states)
-        if analysis_result['executed']:
-            result = analysis_result['result']
-            all_states = analysis_result['all_states']
-        else:
-            if analysis_result['analysis_result']['function_info']['type'] == "workflow_init":
-                all_states = await self.execute(analysis_result['analysis_result']['function_info']['function_content'], all_states=all_states)
-                result = all_states['variables_pool'].get_variable('final_result')
-            else:
-                raise Exception("Function type not supported")
+        function_name, function_params = tool_message.split(":", 1)
+        function_params_json = await self.params_extract(function_params)
+        execute_result = await self.tool_call_executor.execute(self.tools[function_name], function_params_json, all_states)
+        result = execute_result['execute_result']['result']
         return result
-    

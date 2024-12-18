@@ -15,4 +15,5 @@ async def create_function_from_string(function_string):
     exec(function_string, namespace)
     
     # 返回创建的函数对象
-    return namespace['get_topic']
+    function_name = function_string.split("(")[0].split("def ")[1].strip()
+    return namespace[function_name]

@@ -1,10 +1,9 @@
-import json
-import re
 from pydantic import BaseModel
-
 from Orca.utils.variable_replace import replace_variable
 from Orca.segment_executor.llm_client import LLMClient
+import logging
 
+logger = logging.getLogger(__name__)
 
 class ModelMessage(BaseModel):
     role: str

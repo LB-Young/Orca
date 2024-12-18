@@ -13,6 +13,8 @@ async def condition_judge(input="", categories=[], all_states=None, params_forma
             return_foramt = '{"类别":"判断结果类别"}'
             prompt = f"""判断以下内容属于哪一个类别：\n内容为：\n{input}\n类别为：\n{categories}\n请输出一个类别，格式为：\n{return_foramt}\n"""
             result = await llm_client.generate_answer(prompt)
+            if "```" in result:
+                result = result.replace("```json", "").replace("```", "")
             category = json.loads(result)['类别']
             if category in categories:
                 return category

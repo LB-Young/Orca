@@ -2,7 +2,9 @@ import re
 import json
 from Orca.agents.agents import Agent
 from Orca.utils.variable_replace import replace_variable
+import logging
 
+logger = logging.getLogger(__name__)
 
 class AgentInitAnalysis:
     def __init__(self):
@@ -43,7 +45,7 @@ class AgentInitAnalysis:
             match_res[match.group()] = [cur_start, cur_end]
             past_start = cur_end
             cur_prompt = prompt_content[past_start:]
-            print(cur_start, cur_end, match.group(), cur_prompt)
+            logger.debug(cur_start, cur_end, match.group(), cur_prompt)
             match = re.search(pattern, cur_prompt)
             
         all_start = [value[0] for key, value in match_res.items()]
@@ -69,13 +71,13 @@ class AgentInitAnalysis:
                 describe_content = cur_value
         try:
             roles = json.loads(roles_content)
-            if "default" not in tools_content or len(tools_content)>15:
-                tools = json.loads(tools_content)
+            if "default" not in tools_content or len(tools_content)>3:
+                tools = eval(tools_content)
                 if isinstance(tools, dict):
                     return roles, tools, describe_content
                 elif isinstance(tools, list):
                     used_tools = {}
-                    for key, value in all_states['tools_agents_pool'].get_tools():
+                    for key, value in all_states['tools_agents_pool'].get_tools().items():
                         if key in tools:
                             used_tools[key] = value
                     return roles, used_tools, describe_content

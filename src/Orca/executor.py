@@ -1,4 +1,6 @@
 import copy
+import logging
+logger = logging.getLogger(__name__)
 from Orca.orca_language_analysis import PromptAnalysis
 from Orca.segment_analysis import *
 from Orca.segment_executor import *
@@ -40,7 +42,7 @@ class Executor:
         """
         pure_prompt, res_variable_name, variable_type, add_type = await self.prompt_segment_analysis(prompt_segment)
         # print("单句prompt分析结果：")
-        print("当前执行语句：", pure_prompt, add_type, res_variable_name, variable_type)
+        logger.debug("当前执行语句：", pure_prompt, add_type, res_variable_name, variable_type)
         if prompt_segment['type'] == "prompt":
             if "default_agent" in all_states['tools_agents_pool'].get_agents().keys() and (not pure_prompt.strip().startswith("CODE")):
                 # 应该调用默认agent
@@ -160,7 +162,7 @@ class Executor:
             elif add_type == "->>":
                 all_states['variables_pool'].add_variable_value(res_variable_name,result,variable_type)
             all_states['variables_pool'].add_variable("final_result", result, variable_type)
-        print("当前步骤结果:", str(result))
+        logger.debug("当前步骤结果:", str(result))
         return all_states, execute_state
     
     async def prompt_segment_analysis(self, prompt_segment):

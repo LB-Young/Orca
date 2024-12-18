@@ -1,7 +1,9 @@
 from openai import OpenAI
 from together import Together
 from groq import Groq
+import logging
 
+logger = logging.getLogger(__name__)
 
 
 class LLMClient:
@@ -172,8 +174,8 @@ class LLMClient:
 
     async def choose_function(self, prompt, tools, model_name=None):
         await self.get_client(prompt, model_name)
-        print("self.client:", self.client)
-        print("self.llm_model_name:", self.llm_model_name)
+        logger.debug("self.client:", self.client)
+        logger.debug("self.llm_model_name:", self.llm_model_name)
         response = self.client.chat.completions.create(
             model=self.llm_model_name,
             messages=[

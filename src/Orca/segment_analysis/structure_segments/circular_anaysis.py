@@ -1,6 +1,8 @@
 import re
 import json
-# from Orca.executor.actions.llm_call import LLMCallExecutor
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class CircularAnalysis:
@@ -146,7 +148,7 @@ FOR $item in $for_value:
     @functions1(arg1=$item) ->>result2
 END
         """
-        print("待分析的for语句:", content)
+        logger.debug("待分析的for语句:", content)
         goto_content = "next"
         resp = []
         # 匹配FOR语句的外部语句和内部执行体
@@ -206,7 +208,7 @@ END
             }
     block = CircularBlock()
     res = await block.execute(for_prompt, all_states)
-    print(res)
+    logger.debug(res)
 
 if __name__ == '__main__':
     import asyncio
