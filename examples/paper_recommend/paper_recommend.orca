@@ -1,8 +1,8 @@
 default_agent:False
 variabes:
 {
-    "type_sets":['LLM','RAG','Agent','多模态','音频','计算机视觉','其它'], 
-    "research_direction":['LLM','RAG','Agent','多模态']
+    "type_sets":["LLM","RAG","Agent","多模态","音频","计算机视觉","其它"], 
+    "research_direction":["LLM","RAG","Agent","多模态"]
 }
 orca:
 

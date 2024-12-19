@@ -5,17 +5,23 @@
 # tips       :
 import os
 import sys
-import json
+abs_path = os.path.abspath(__file__)
+cur_path = abs_path.split("examples")[0] + "\src"
+sys.path.append(rf"{cur_path}")
+sys.path.append(r"F:\Cmodels\Personal_project\tools_set")
+
 import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
-sys.path.append(r"F:\Cmodels\Orca_branch\main\Orca\src")
-sys.path.append(r"F:\Cmodels\Personal_project\tools_set")
 
-
+import json
 from dotenv import load_dotenv
 from Orca import OrcaExecutor
 from Orca import all_tools
+from tools import other_tools
+
+orca_prompt_path = r"F:\Cmodels\Orca_branch\main\Orca\examples\orca_prompts\if_llm_judge.orca"
+
 def load_api_key(platform):
     with open(r"C:\Users\86187\Desktop\api_key.json", "r", encoding="utf-8") as f:
         api_dict = json.load(f)
@@ -49,11 +55,9 @@ config = {
     "together_llm_model_name": together_llm_model_name
 }
 
-orca_prompt_path = r"F:\Cmodels\Orca_branch\main\Orca\examples\multi_roles\multi_roles.orca"
 with open(orca_prompt_path, "r", encoding="utf-8") as f:
     orca_file = f.read()
 
-from tools import other_tools
 all_tools.update(other_tools)
 
 content = orca_file.split("orca:", 1)[-1].strip()

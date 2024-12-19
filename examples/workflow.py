@@ -5,13 +5,23 @@
 # tips       :
 import os
 import sys
-import json
-sys.path.append(r"F:\Cmodels\Orca_branch\main\Orca\src")
+abs_path = os.path.abspath(__file__)
+cur_path = abs_path.split("examples")[0] + "src"
+sys.path.append(rf"{cur_path}")
 sys.path.append(r"F:\Cmodels\Personal_project\tools_set")
 
+import logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
+import json
 from dotenv import load_dotenv
 from Orca import OrcaExecutor
 from Orca import all_tools
+from tools import other_tools
+
+orca_prompt_path = r"F:\Cmodels\Orca_branch\main\Orca\examples\paper_recommend\paper_recommend.orca"
+
 def load_api_key(platform):
     with open(r"C:\Users\86187\Desktop\api_key.json", "r", encoding="utf-8") as f:
         api_dict = json.load(f)
@@ -45,11 +55,10 @@ config = {
     "together_llm_model_name": together_llm_model_name
 }
 
-orca_prompt_path = r"F:\Cmodels\Orca_branch\main\Orca\examples\finance_recommend\finance_recommend.orca"  # 输入workflow prompt路径
+
 with open(orca_prompt_path, "r", encoding="utf-8") as f:
     orca_file = f.read()
 
-from tools import other_tools
 all_tools.update(other_tools)
 
 content = orca_file.split("orca:", 1)[-1].strip()
@@ -73,7 +82,9 @@ init_params = {
             "law_expert": "法律专家",
             "medical_expert": "医疗专家",
             "computer_expert": "计算机专家",
-                }
+                },
+        "tools":"default",
+        "agents":"default",
             }
         }
 async def main():
@@ -94,10 +105,8 @@ async def main():
         }
         executor.init_executor(init_parmas=new_init_params)
         res, execute_state = await executor.execute(content, breakpoint_infos=new_init_params, mode=mode)
-    print("--"*50)
-    print(res['variables_pool'].get_variables())
-    print("--"*50)
-    print(res['variables_pool'].get_variables('final_result'))
+    logger.info(res['variables_pool'].get_variables('final_result'))
+    logger.info("--"*50)
     
 if __name__ == '__main__':
     import asyncio

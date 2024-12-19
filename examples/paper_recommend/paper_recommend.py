@@ -6,9 +6,11 @@
 import os
 import sys
 import json
-sys.path.append(r"F:\Cmodels\Orca_branch\0.1.3\Orca\src")
+sys.path.append(r"F:\Cmodels\Orca_branch\main\Orca\src")
 sys.path.append(r"F:\Cmodels\Personal_project\tools_set")
-
+import logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 from dotenv import load_dotenv
 from Orca import OrcaExecutor
@@ -46,7 +48,7 @@ config = {
     "together_llm_model_name": together_llm_model_name
 }
 
-orca_prompt_path = r"F:\Cmodels\Orca_branch\0.1.3\Orca\examples\orca_prompts\paper_recommend.orca"  # 输入workflow prompt路径
+orca_prompt_path = r"F:\Cmodels\Orca_branch\main\Orca\examples\paper_recommend\paper_recommend.orca"  # 输入workflow prompt路径
 with open(orca_prompt_path, "r", encoding="utf-8") as f:
     orca_file = f.read()
 
@@ -97,10 +99,8 @@ async def main():
         }
         executor.init_executor(init_parmas=new_init_params)
         res, execute_state = await executor.execute(content, breakpoint_infos=new_init_params, mode=mode)
-    print("--"*50)
-    print(res['variables_pool'].get_variables())
-    print("--"*50)
-    print(res['variables_pool'].get_variables('final_result'))
+    logger.info(res['variables_pool'].get_variables('final_result'))
+    logger.info("--"*50)
     
 if __name__ == '__main__':
     import asyncio
