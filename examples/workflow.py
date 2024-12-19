@@ -22,6 +22,8 @@ from tools import other_tools
 
 orca_prompt_path = r"F:\Cmodels\Orca_branch\main\Orca\examples\paper_recommend\paper_recommend.orca"
 
+orca_prompt_path = abs_path[:abs_path.index("example")] + orca_prompt_path[orca_prompt_path.index("examples"):]
+
 def load_api_key(platform):
     with open(r"C:\Users\86187\Desktop\api_key.json", "r", encoding="utf-8") as f:
         api_dict = json.load(f)
