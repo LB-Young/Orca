@@ -27,7 +27,6 @@ class AgentInitAnalysis:
         return result
 
     async def get_roles_tools(self, prompt_content, all_states):
-
         prompt_content = prompt_content.strip().replace("@agent_init", "")
         if prompt_content.startswith("(") and prompt_content.endswith(")"):
             prompt_content = prompt_content[1:-1].strip()
@@ -71,7 +70,7 @@ class AgentInitAnalysis:
                 describe_content = cur_value
         try:
             roles = json.loads(roles_content)
-            if "default" not in tools_content or len(tools_content)>3:
+            if "default" not in tools_content:
                 tools = eval(tools_content)
                 if isinstance(tools, dict):
                     return roles, tools, describe_content

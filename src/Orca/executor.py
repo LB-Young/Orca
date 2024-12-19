@@ -9,7 +9,7 @@ class Executor:
     def __init__(self, all_states=None):
         pass
 
-    async def execute(self, prompt, all_states=None, mode="c"):
+    async def execute(self, prompt, all_states=None, mode="c", stream=False):
         # parser prompt
         if "prompt_segments" not in all_states.keys():
             self.prompt_analysis = PromptAnalysis()
@@ -22,7 +22,7 @@ class Executor:
         # Return the result
         execute_state = "prompt"
         for index, prompt_segment in enumerate(prompt_segments):
-            all_states, execute_state = await self.segment_execute(prompt_segment=prompt_segment, all_states=all_states)
+            all_states, execute_state = await self.segment_execute(prompt_segment=prompt_segment, all_states=all_states, stream=stream)
             if execute_state == "exit":
                 break
             if  execute_state == "bp":
@@ -32,9 +32,9 @@ class Executor:
                 all_states['prompt_segments'] = prompt_segments[index+1:]
                 execute_state = "bp"
                 break
-        return all_states, execute_state
+            yield all_states, execute_state
 
-    async def segment_execute(self, prompt_segment, all_states=None):
+    async def segment_execute(self, prompt_segment, all_states=None, stream=False):
         execute_state = "normal"
         """
         prompt_segment:type，content，result_variable，all_next_prompt；
@@ -51,17 +51,14 @@ class Executor:
                 analysis_result = await self.function_call.analysis(pure_prompt=pure_prompt, all_states=all_states)
                 if analysis_result['analysis_result']['type'] == "agent":
                     self.agent_call_executor = AgentCallExecutor()
-                    execute_result = await self.agent_call_executor.execute(agent_object=analysis_result['analysis_result']['object'], agent_input=analysis_result['analysis_result']['params'], all_states=analysis_result['all_states'], stream=True)
+                    execute_result = await self.agent_call_executor.execute(agent_object=analysis_result['analysis_result']['object'], agent_input=analysis_result['analysis_result']['params'], all_states=analysis_result['all_states'], stream=stream)
                     result = execute_result['execute_result']['result']
                     all_states = execute_result['all_states']
                 else:
                     self.llm_call = LLMCallExecutor()
-                    analysis_result = await self.llm_call.execute(pure_prompt, all_states=all_states)
-                    if analysis_result['executed']:
-                        all_states = analysis_result['all_states']
-                        result = analysis_result['result']
-                    else:
-                        pass
+                    analysis_result = await self.llm_call.execute(pure_prompt, all_states=all_states, stream=stream)
+                    all_states = analysis_result['all_states']
+                    result = analysis_result['execute_result']['result']
             else:
                 # prompt不用分析，直接运行
                 if pure_prompt.strip().startswith("CODE"):
@@ -70,7 +67,7 @@ class Executor:
                 else:
                     # 不生成代码直接解答
                     self.llm_call_executor = LLMCallExecutor()
-                    execute_result = await self.llm_call_executor.execute(pure_prompt, all_states=all_states, stream=False)
+                    execute_result = await self.llm_call_executor.execute(pure_prompt, all_states=all_states, stream=stream)
                     all_states = execute_result['all_states']
                     result = execute_result['execute_result']['result']
 
@@ -141,9 +138,8 @@ class Executor:
             # 分支结构处理
             self.branch_blook = BranchAnalysis()
             analysis_result = await self.branch_blook.analysis(pure_prompt, all_states)
-            all_states, execute_state = await self.execute(analysis_result['analysis_result']['if_content'], all_states=all_states)
+            all_states, execute_state = self.execute(analysis_result['analysis_result']['if_content'], all_states=all_states)
             result = all_states['variables_pool'].get_variables('final_result')
-
         elif prompt_segment['type'] == "exit":
             self.exit_block  = ExitAnalysis()
             analysis_result = await self.exit_block.analysis(pure_prompt, all_states)
@@ -162,7 +158,7 @@ class Executor:
             elif add_type == "->>":
                 all_states['variables_pool'].add_variable_value(res_variable_name,result,variable_type)
             all_states['variables_pool'].add_variable("final_result", result, variable_type)
-        logger.info("当前步骤结果:", str(result))
+        logger.debug("当前步骤结果:", str(result))
         return all_states, execute_state
     
     async def prompt_segment_analysis(self, prompt_segment):
