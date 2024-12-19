@@ -162,7 +162,10 @@ class Executor:
             elif add_type == "->>":
                 all_states['variables_pool'].add_variable_value(res_variable_name,result,variable_type)
             all_states['variables_pool'].add_variable("final_result", result, variable_type)
-        logger.info("当前步骤结果:", str(result))
+        try:
+            logger.info("当前步骤结果:", str(result))
+        except:
+            print("当前步骤结果:", str(result))
         return all_states, execute_state
     
     async def prompt_segment_analysis(self, prompt_segment):
