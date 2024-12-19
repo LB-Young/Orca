@@ -1,12 +1,12 @@
 default_agent:False
 variabes:
 {
-    "topic":"openai第十天打电话" , 
-    "final_output_artical_path":"F:/logs/orca/output/wechatmp/1-800-CHAT-GPT.txt"
+    "topic":"RAG技术" , 
+    "final_output_artical_path":"F:/logs/orca/output/wechatmp/RAG技术.txt"
 }
 orca:
-@wechatmp_spider("查询8篇关于“$topic”的相关内容") -> reference_path(list)
+@wechatmp_spider("查询10篇关于“$topic”的相关内容") -> reference_path(list)
 @dir_reader(读取“$reference_path”文件夹下全部内容) -> reference_content(str)
 我现在要写一篇关于我想要写一篇关于“$topic”的推送，请帮我写一份大纲。以下是你可以参考的资料：\n$reference_content\n\n要求：\n1、你写的大纲要突出项目的重点。\n2、以markdown形式给出最后的大纲。\n3、需要给出一个具有吸引力的文章标题。\n4、你写的大纲可以借鉴参考内容的大纲。 -> outline
-我现在写好了一份大纲，请你根据参考内容撰写大纲中的各个部分内容,形成一篇完整的推送，字符要达到3000字以上。\n\n参考内容：\n$reference_content\n\n已经写好的大纲：\n$outline\n\n请以根据参考内容补充大纲中各个部分的内容。注意：你可以对这些参考内容进行整合、对原来的语句进行重新组织，但是不要大段落的抄袭,确保与参考内容的相似度不超过5%。 -> modified_artical
+我现在写好了一份大纲，请你根据参考内容撰写大纲中的各个部分内容,形成一篇完整的推送，字符要达到15000字以上，内容要描述的很专业很详细。\n\n参考内容：\n$reference_content\n\n已经写好的大纲：\n$outline\n\n请以根据参考内容补充大纲中各个部分的内容。注意：你可以对这些参考内容进行整合、对原来的语句进行重新组织，但是不要大段落的抄袭,确保与参考内容的相似度不超过5%。 -> modified_artical
 @save2local("content"="$modified_artical", "path"="$final_output_artical_path") -> artical_flag
