@@ -5,4 +5,4 @@ variabes:
 }
 orca:
 写一首诗 ->result1
-@save2local("content"="$result1", "path"="$result_path") -> caption_path
+@save2local("content"=$result1, "path"=$result_path) -> caption_path
