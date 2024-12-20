@@ -10,6 +10,7 @@ async def save2local(contents="", output_path="", params_format=False):
                 f.write(contents)
             output_path = "result.txt"
         else:
+            os.makedirs(os.path.dirname(output_path), exist_ok=True)
             with open(output_path, "w", encoding="utf-8") as f:
                 f.write(contents)
         return f"内容已经保存至{output_path}!"

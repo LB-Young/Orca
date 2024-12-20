@@ -1,4 +1,6 @@
 import copy
+import openai
+from collections.abc import AsyncGenerator
 import logging
 logger = logging.getLogger(__name__)
 from Orca.orca_language_analysis import PromptAnalysis
@@ -22,7 +24,9 @@ class Executor:
         # Return the result
         execute_state = "prompt"
         for index, prompt_segment in enumerate(prompt_segments):
-            all_states, execute_state = await self.segment_execute(prompt_segment=prompt_segment, all_states=all_states, stream=stream)
+            async for all_states, execute_state in self.segment_execute(prompt_segment=prompt_segment, all_states=all_states, stream=stream):
+                execute_state = "prompt"
+                yield all_states, execute_state
             if execute_state == "exit":
                 break
             if  execute_state == "bp":
@@ -152,21 +156,42 @@ class Executor:
             result = "进入bp"
             execute_state = "bp"
 
-        if res_variable_name is not None:
-            if add_type == "->":
-                all_states['variables_pool'].add_variable(res_variable_name,result,variable_type)
-            elif add_type == "->>":
-                all_states['variables_pool'].add_variable_value(res_variable_name,result,variable_type)
-            all_states['variables_pool'].add_variable("final_result", result, variable_type)
-<<<<<<< HEAD
         logger.debug("当前步骤结果:", str(result))
-=======
-        try:
-            logger.info("当前步骤结果:", str(result))
-        except:
-            print("当前步骤结果:", str(result))
->>>>>>> 34b796acd98d1c6a05551a44c1b42d760f88bb19
-        return all_states, execute_state
+
+        processed_result = ""
+        if isinstance(result, AsyncGenerator):
+            async for line in result:
+                processed_result += line
+                if res_variable_name is not None:
+                    if add_type == "->":
+                        all_states['variables_pool'].add_variable(res_variable_name,processed_result,variable_type)
+                    elif add_type == "->>":
+                        all_states['variables_pool'].add_variable_value(res_variable_name,processed_result,variable_type)
+                    all_states['variables_pool'].add_variable("final_result", line, variable_type)
+                yield all_states, execute_state
+            all_states['variables_pool'].add_variable("final_result", "\n\n", variable_type)
+            yield all_states, execute_state
+        else:
+            for line in result:
+                # breakpoint()
+                cur_item = str(line)
+                if isinstance(line, (openai.types.chat.chat_completion_chunk.ChatCompletionChunk)):
+                    processed_result += line.choices[0].delta.content
+                    cur_item = line.choices[0].delta.content
+                elif isinstance(line, str):
+                    processed_result += line
+                else:
+                    processed_result += str(line)
+
+                if res_variable_name is not None:
+                    if add_type == "->":
+                        all_states['variables_pool'].add_variable(res_variable_name,processed_result,variable_type)
+                    elif add_type == "->>":
+                        all_states['variables_pool'].add_variable_value(res_variable_name,processed_result,variable_type)
+                    all_states['variables_pool'].add_variable("final_result", cur_item, variable_type)
+                yield all_states, execute_state
+            all_states['variables_pool'].add_variable("final_result", "\n\n", variable_type)
+            yield all_states, execute_state
     
     async def prompt_segment_analysis(self, prompt_segment):
         """

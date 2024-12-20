@@ -1,8 +1,8 @@
 default_agent:False
 variabes:
 {
-    "topic":"openai第十天打电话" , 
-    "final_output_artical_path":"F:/logs/orca/output/wechatmp/1-800-CHAT-GPT.txt"
+    "topic":"RAG难点" , 
+    "final_output_artical_path":"F:/logs/orca/output/wechatmp/RAG难点.txt"
 }
 orca:
 @wechatmp_spider("查询8篇关于“$topic”的相关内容") -> reference_path(list)

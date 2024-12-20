@@ -1,0 +1,8 @@
+default_agent:False
+variabes:
+{
+    "result_path": "F:/logs/orca/output/casual/result.txt"
+}
+orca:
+写一首诗 ->result1
+@save2local("content"="$result1", "path"="$result_path") -> caption_path

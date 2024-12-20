@@ -1,9 +1,9 @@
 default_agent:False
 variabes:
 {
-    "video_url": "https://www.youtube.com/watch?v=LWa6OHeNK3s",
-    "translate_path":"F:/logs/orca/output/youtube_caption/LWa6OHeNK3s/translate_path.txt",
-    "summary_path":"F:/logs/orca/output/youtube_caption/LWa6OHeNK3s/summary_path.txt"
+    "video_url": "https://www.youtube.com/watch?v=g_qxoznfa7E",
+    "translate_path":"F:/logs/orca/output/youtube_caption/openai-day11/translate_path.txt",
+    "summary_path":"F:/logs/orca/output/youtube_caption/openai-day11/summary_path.txt"
 }
 orca:
 @get_youtube_caption("提取视频“$video_url”的字幕内容") -> video_caption(str)

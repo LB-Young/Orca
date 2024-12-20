@@ -23,7 +23,7 @@ from Orca import OrcaExecutor
 from Orca import all_tools
 from tools import other_tools
 
-orca_prompt_path = r"F:\Cmodels\Orca_branch\stream_response\Orca\examples\orca_prompts\if.orca"
+orca_prompt_path = r"F:\Cmodels\Orca_branch\stream_response\Orca\examples\orca_prompts\function_stream_test.orca"
 
 orca_prompt_path = abs_path[:abs_path.index("example")] + orca_prompt_path[orca_prompt_path.index("examples"):]
 
@@ -96,20 +96,11 @@ async def main():
     executor = OrcaExecutor()
     executor.init_executor(init_parmas=init_params)
     response = await executor.execute(prompt=content, stream=True)
+    past_answer = 0
     async for res, execute_state in response:
         # print(res['variables_pool'].get_variables('final_result'))
-        if isinstance(res['variables_pool'].get_variables('final_result'), AsyncGenerator):
-            async for line in res['variables_pool'].get_variables('final_result'):
-                print(line, end="", flush=True)
-        else:
-            for line in res['variables_pool'].get_variables('final_result'):
-                # breakpoint()
-                if isinstance(line, (openai.types.chat.chat_completion_chunk.ChatCompletionChunk)):
-                    print(line.choices[0].delta.content, end="", flush=True)
-                elif isinstance(line, str):
-                    print(line, end="", flush=True)
-                else:
-                    print(str(line), end="", flush=True)
+        print(res['variables_pool'].get_variables('final_result'), end="", flush=True)
+                
     # TODO
     # 如何接收返回值
     while execute_state == "bp":
@@ -124,7 +115,7 @@ async def main():
             "prompt_segments": res['prompt_segments'],
         }
         executor.init_executor(init_parmas=new_init_params)
-        res, execute_state = await executor.execute(content, breakpoint_infos=new_init_params, mode=mode, stream=True)
+        res, execute_state = await executor.execute(content, breakpoint_infos=new_init_params, mode=mode, stream=False)
     # logger.info(res['variables_pool'].get_variables('final_result'))
     # logger.info("--"*50)
     
