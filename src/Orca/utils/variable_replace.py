@@ -23,10 +23,15 @@ async def replace_variable(prompt, all_states):
             varuable_full_index = variable_name.replace(variable_first_name, str(variable_value))
             value = eval(varuable_full_index)
             replace_dict[match] = value
-            
     for key, value in replace_dict.items():
         if isinstance(value, str):
-            prompt = prompt.replace(key, '"'+value+'"')
+            if len(key.strip()) == len(prompt.strip()):
+                prompt = value
+            else:
+                prompt = prompt.replace(key, '"'+value+'"')
         else:
-            prompt = prompt.replace(key, str(value))
+            if len(key.strip()) == len(prompt.strip()):
+                prompt = value
+            else:
+                prompt = prompt.replace(key, str(value))
     return prompt

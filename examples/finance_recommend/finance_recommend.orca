@@ -49,7 +49,7 @@ return summary
 
 请你基于对这些新闻内容生成明天的投资建议。 -> recommend
 
-@save2local("content"="投资建议$recommend\n\n新闻总结：\n\n国家政策：$contry_policy_summary\n\n企业动态：$company_dynamic_summary\n\n股市行情：$stock_market_summary\n\n财经事件：$finance_event_summary\n\n观点评论：$view_comment_summary\n\n民生消费：$life_consumption_summary", "path"="$recommend_path") -> recommend_path
+@save2local("contents"="投资建议$recommend\n\n新闻总结：\n\n国家政策：$contry_policy_summary\n\n企业动态：$company_dynamic_summary\n\n股市行情：$stock_market_summary\n\n财经事件：$finance_event_summary\n\n观点评论：$view_comment_summary\n\n民生消费：$life_consumption_summary", "output_path"="$recommend_path") -> recommend_path
 
 
 @send_email("content"="主人，早上好！\n我为您生成了今天的投资建议：\n\n-----------------------------------------------------------------------------------------------------------------------------\n\n投资建议$recommend\n\n新闻总结：\n\n国家政策：$contry_policy_summary\n\n企业动态：$company_dynamic_summary\n\n股市行情：$stock_market_summary\n\n财经事件：$finance_event_summary\n\n观点评论：$view_comment_summary\n\n民生消费：$life_consumption_summary", "subject"="daily finance recommend", "to"="lby15356@gmail.com") -> email

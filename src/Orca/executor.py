@@ -25,7 +25,7 @@ class Executor:
         execute_state = "prompt"
         for index, prompt_segment in enumerate(prompt_segments):
             async for all_states, execute_state in self.segment_execute(prompt_segment=prompt_segment, all_states=all_states, stream=stream):
-                execute_state = "prompt"
+                execute_state = "processed"
                 yield all_states, execute_state
             if execute_state == "exit":
                 break
@@ -134,7 +134,9 @@ class Executor:
             # print("提取后的for语句执行体：",for_content)
             for item in iter_list:
                 all_states['variables_pool'].add_variable(iter_v.replace("$","").strip(), item)
-                all_states, execute_state = await self.execute(for_content, all_states=all_states)
+                response = self.execute(for_content, all_states=all_states)
+                async for all_states, execute_state in response:
+                    all_states, execute_state = all_states, execute_state
             all_states['variables_pool'].remove_variable(iter_v.replace("$","").strip())
             result = all_states['variables_pool'].get_variables('final_result')
 
@@ -167,31 +169,42 @@ class Executor:
                         all_states['variables_pool'].add_variable(res_variable_name,processed_result,variable_type)
                     elif add_type == "->>":
                         all_states['variables_pool'].add_variable_value(res_variable_name,processed_result,variable_type)
-                    all_states['variables_pool'].add_variable("final_result", line, variable_type)
+                    all_states['variables_pool'].add_variable("final_result", line, "str")
                 yield all_states, execute_state
-            all_states['variables_pool'].add_variable("final_result", "\n\n", variable_type)
-            yield all_states, execute_state
+            all_states['variables_pool'].add_variable("final_result", "\n\n", "str")
+            yield all_states, execute_states
         else:
-            for line in result:
-                # breakpoint()
-                cur_item = str(line)
-                if isinstance(line, (openai.types.chat.chat_completion_chunk.ChatCompletionChunk)):
-                    processed_result += line.choices[0].delta.content
-                    cur_item = line.choices[0].delta.content
-                elif isinstance(line, str):
-                    processed_result += line
-                else:
-                    processed_result += str(line)
+            if isinstance(result, openai.Stream):
+                for line in result:
+                    # breakpoint()
+                    cur_item = str(line)
+                    if isinstance(line, (openai.types.chat.chat_completion_chunk.ChatCompletionChunk)):
+                        processed_result += line.choices[0].delta.content
+                        cur_item = line.choices[0].delta.content
+                    elif isinstance(line, str):
+                        processed_result += line
+                    else:
+                        processed_result += str(line)
 
+                    if res_variable_name is not None:
+                        if add_type == "->":
+                            all_states['variables_pool'].add_variable(res_variable_name,processed_result,variable_type)
+                        elif add_type == "->>":
+                            all_states['variables_pool'].add_variable_value(res_variable_name,processed_result,variable_type)
+                        all_states['variables_pool'].add_variable("final_result", cur_item, "str")
+                    yield all_states, execute_state
+                all_states['variables_pool'].add_variable("final_result", "\n\n", variable_type)
+                yield all_states, execute_state
+            else:
+                processed_result = result
                 if res_variable_name is not None:
                     if add_type == "->":
                         all_states['variables_pool'].add_variable(res_variable_name,processed_result,variable_type)
                     elif add_type == "->>":
                         all_states['variables_pool'].add_variable_value(res_variable_name,processed_result,variable_type)
-                    all_states['variables_pool'].add_variable("final_result", cur_item, variable_type)
+                    all_states['variables_pool'].add_variable("final_result", str(processed_result), "str")
                 yield all_states, execute_state
-            all_states['variables_pool'].add_variable("final_result", "\n\n", variable_type)
-            yield all_states, execute_state
+
     
     async def prompt_segment_analysis(self, prompt_segment):
         """

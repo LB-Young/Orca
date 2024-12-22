@@ -15,6 +15,8 @@ async def save2local(contents="", output_path="", params_format=False):
                 f.write(contents)
         return f"内容已经保存至{output_path}!"
     except:
+        print("contents:", contents)
+        print("output_path:", output_path)
         raise Exception("文件夹内容读取出错！")
     
 """
@@ -23,3 +25,8 @@ async def save2local(contents="", output_path="", params_format=False):
     "describe":"将文本保存至本地，需要参数{'contents':需要保存的内容,'output_path':输出路径}",
 }
 """
+
+if __name__ == "__main__":
+    import asyncio
+    res = asyncio.run(save2local("test", "F:/logs/orca/output/paper_recommend/Agent_1221.txt"))
+    print(res)

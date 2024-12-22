@@ -21,7 +21,7 @@ class VariablesPool:
                     raise Exception(f"Invalid JSON format, variable: {variable_type}")
             elif variable_type == "list":
                 try:
-                    if "[" in variable_value and "]" in variable_value:
+                    if isinstance(variable_value, str) and "[" in variable_value and "]" in variable_value:
                         variable_value = variable_value[variable_value.index("["): variable_value.index("]")+1]
                         variable_value = eval(variable_value)
                     else:

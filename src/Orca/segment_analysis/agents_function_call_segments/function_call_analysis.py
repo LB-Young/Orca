@@ -18,7 +18,6 @@ class FunctionCallAnalysis:
         all_agents = all_states['tools_agents_pool'].get_agents()
         module_name = pure_prompt.strip().split("(")[0].replace("@", "").strip()
         params_content = pure_prompt.split(module_name)[-1].strip()
-        params_content = await replace_variable(params_content, all_states)
         if module_name in all_agents.keys():
             if params_content[0] == "(" and params_content[-1] == ")":
                 params_content = params_content[1:-1]
@@ -61,7 +60,12 @@ class FunctionCallAnalysis:
                         if len(params_dict) == 0:
                             logger.error(extracted_params)
                             raise Exception("Can parser extracted_params to json")
-
+            for key, value in params_dict.items():
+                if isinstance(value, str):
+                    value = await replace_variable(value, all_states)
+                else:
+                    pass
+                params_dict[key] = value
             if isinstance(all_tools[module_name]['object'], str) and all_tools[module_name]['type'] == "python_init":
                 all_tools[module_name]['object'] = await create_function_from_string(all_tools[module_name]['object'])
             if isinstance(all_tools[module_name]['object'], str):

@@ -23,7 +23,7 @@ from Orca import OrcaExecutor
 from Orca import all_tools
 from tools import other_tools
 
-orca_prompt_path = r"F:\Cmodels\Orca_branch\stream_response\Orca\examples\youtube_caption\youtube_caption.orca"
+orca_prompt_path = r"F:\Cmodels\Orca_branch\stream_response\Orca\examples\paper_recommend\paper_recommend_topic.orca"
 
 orca_prompt_path = abs_path[:abs_path.index("example")] + orca_prompt_path[orca_prompt_path.index("examples"):]
 
@@ -98,7 +98,10 @@ async def main():
     response = await executor.execute(prompt=content, stream=True)
     async for res, execute_state in response:
         # print(res['variables_pool'].get_variables('final_result'))
-        print(res['variables_pool'].get_variables('final_result'), end="", flush=True)
+        if execute_state == "processed":
+            print(res['variables_pool'].get_variables('final_result'), end="", flush=True)
+        else:
+            pass
 
     # TODO
     # 如何接收返回值
