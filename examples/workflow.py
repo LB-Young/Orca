@@ -5,6 +5,7 @@
 # tips       :
 import os
 import sys
+from collections.abc import AsyncGenerator
 abs_path = os.path.abspath(__file__)
 cur_path = abs_path.split("examples")[0] + "src"
 sys.path.append(rf"{cur_path}")
@@ -13,14 +14,16 @@ sys.path.append(r"F:\Cmodels\Personal_project\tools_set")
 import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+logging.getLogger("httpx").setLevel(logging.ERROR)
 
 import json
+import openai
 from dotenv import load_dotenv
 from Orca import OrcaExecutor
 from Orca import all_tools
 from tools import other_tools
 
-orca_prompt_path = r"F:\Cmodels\Orca_branch\main\Orca\examples\finance_recommend\finance_recommend_old.orca"
+orca_prompt_path = r"F:\Cmodels\Orca_branch\stream\Orca\examples\finance_recommend\finance_recommend_old.orca"
 
 orca_prompt_path = abs_path[:abs_path.index("example")] + orca_prompt_path[orca_prompt_path.index("examples"):]
 
@@ -92,8 +95,16 @@ init_params = {
 async def main():
     executor = OrcaExecutor()
     executor.init_executor(init_parmas=init_params)
-    res, execute_state  = await executor.execute(prompt=content)
-    print(res.keys())
+    response = await executor.execute(prompt=content, stream=True)
+    async for res, execute_state in response:
+        # print(res['variables_pool'].get_variables('final_result'))
+        if execute_state == "processed":
+            print(res['variables_pool'].get_variables('final_result'), end="", flush=True)
+        else:
+            pass
+
+
+
     while execute_state == "bp":
         mode = input("请输入运行模式：")
         new_init_params = {
@@ -106,9 +117,7 @@ async def main():
             "prompt_segments": res['prompt_segments'],
         }
         executor.init_executor(init_parmas=new_init_params)
-        res, execute_state = await executor.execute(content, breakpoint_infos=new_init_params, mode=mode)
-    logger.info(res['variables_pool'].get_variables('final_result'))
-    logger.info("--"*50)
+        res, execute_state = await executor.execute(content, breakpoint_infos=new_init_params, mode=mode, stream=True)
     
 if __name__ == '__main__':
     import asyncio

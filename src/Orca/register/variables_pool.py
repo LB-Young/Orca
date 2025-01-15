@@ -1,4 +1,6 @@
 import json
+from collections.abc import AsyncGenerator
+from openai import Stream
 class VariablesPool:
     def __init__(self):
         self.variables = {}
@@ -7,24 +9,27 @@ class VariablesPool:
         self.variables = variables
 
     def add_variable(self, variable_name, variable_value, variable_type="str"):
-        if variable_type == "int":
-            variable_value = int(variable_value)
-        elif variable_type == "json":
-            try:
-                variable_value = json.loads(variable_value)
-            except:
-                raise Exception(f"Invalid JSON format, variable: {variable_type}")
-        elif variable_type == "list":
-            try:
-                if "[" in variable_value and "]" in variable_value:
-                    variable_value = variable_value[variable_value.index("["): variable_value.index("]")+1]
-                    variable_value = eval(variable_value)
-                else:
-                    pass
-            except:
-                raise Exception(f"Invalid list format, variable: {variable_type}")
+        if isinstance(variable_value, (Stream,AsyncGenerator)):
+             variable_value = variable_value
         else:
-            variable_value = str(variable_value)
+            if variable_type == "int":
+                variable_value = int(variable_value)
+            elif variable_type == "json":
+                try:
+                    variable_value = json.loads(variable_value)
+                except:
+                    raise Exception(f"Invalid JSON format, variable: {variable_type}")
+            elif variable_type == "list":
+                try:
+                    if isinstance(variable_value, str) and "[" in variable_value and "]" in variable_value:
+                        variable_value = variable_value[variable_value.index("["): variable_value.index("]")+1]
+                        variable_value = eval(variable_value)
+                    else:
+                        pass
+                except:
+                    raise Exception(f"Invalid list format, variable: {variable_type}")
+            else:
+                variable_value = str(variable_value)
         self.variables[variable_name] = variable_value
 
     def add_variable_value(self, variable_name, variable_value, variable_type):
@@ -41,7 +46,7 @@ class VariablesPool:
         if variable_name is None:
             return self.variables
         else:
-            try:
+            if variable_name in self.variables.keys():
                 return self.variables[variable_name]
-            except:
-                return "$" + variable_name
+            else:
+                return variable_name

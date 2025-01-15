@@ -27,7 +27,6 @@ class AgentInitAnalysis:
         return result
 
     async def get_roles_tools(self, prompt_content, all_states):
-
         prompt_content = prompt_content.strip().replace("@agent_init", "")
         if prompt_content.startswith("(") and prompt_content.endswith(")"):
             prompt_content = prompt_content[1:-1].strip()
