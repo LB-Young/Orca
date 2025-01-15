@@ -5,7 +5,7 @@ from Orca.utils.variable_replace import replace_variable
 
 
 class Agent:
-    def __init__(self, roles=None, tools=None):
+    def __init__(self, roles=None, tools=None, system_prompt=None):
         self.role_format = """
 # Role: 团队负责人
 
@@ -46,26 +46,46 @@ class Agent:
     3.1、如果触发其他角色解答，使用以下符号进行触发：“=>@xxx:”，例如“=>@expert:”表示以专家角色开始发言,“=>@orca_agent:”表示不需要调用团队成员而是以自己的角色回答。
     3.2、每一次当你触发了不同的角色之后，你需要切换到对应的角色进行回答。如“=>@law_expert:法律上的解释是……”
 
+{system_prompt}
+{history_message}
 当前的问题为：{prompt}\n。
 """
+        if system_prompt is None:
+            self.role_format = self.role_format.replace(r"{system_prompt}", "")
+        else:
+            self.role_format = self.role_format.replace(r"{system_prompt}", f"## JOB Description:\n {system_prompt}\n")
         self.roles_info = ""
         for key, value in roles.items():
             self.roles_info += f"@{key}: {value}\n"
+        if len(self.roles_info) == 0:
+            self.roles_info = "没有其他角色"
         self.tools = {}
         self.tool_describe = []
         for key, value in tools.items():
             self.tools[key] = value["object"]
             self.tool_describe.append(f"{key}: {value['describe']}\n")
+        if len(self.tool_describe) == 0:
+            self.tool_describe = "没有其他工具"
         self.role = self.role_format.replace(r"{roles}", self.roles_info).replace(r"{tools}", "".join(self.tool_describe))
 
         self.llm_call_executor = LLMCallExecutor()
         self.tool_call_executor = ToolCallExecutor()
 
     async def execute(self, prompt, all_states=None, stream=False):
-        prompt = await replace_variable(prompt, all_states)
-
-        prompt = self.role.replace("{prompt}", prompt).strip()
-        result = await self.llm_call_executor.execute(content=prompt, all_states=all_states, stream=stream, variable_replaced=True)
+        if isinstance(prompt, str):
+            messages = eval(prompt)
+        else:
+            messages = prompt
+        if len(messages) == 1:
+            self.role = self.role.replace(r"{history_message}", "")
+            query = messages[-1]["message"]
+        else:
+            history_messages = "## 历史对话信息为：\n" + str(messages[:-1]) + "\n"
+            self.role = self.role.replace(r"{history_message}", history_messages)
+            query = messages[-1]["message"]
+        query = await replace_variable(prompt=query, all_states=all_states)
+        cur_prompt = self.role.replace("{prompt}", query).strip()
+        result = await self.llm_call_executor.execute(content=cur_prompt, all_states=all_states, stream=stream, variable_replaced=True)
         result = result['execute_result']['result']
         all_answer = ""
         tool_messages = ""
@@ -86,8 +106,9 @@ class Agent:
             result = await self.tool_run(tool_message=tool_messages, all_states=all_states)
             for item in str(result)+"\n":
                 yield item
-            prompt = prompt + "\n" + "已经执行内容:" + all_answer + "\n" + "工具执行结果:" + result
-            async for item in self.execute(prompt=prompt, all_states=all_states, stream=stream):
+            new_query = query + "\n" + "已经执行内容:" + all_answer + "\n" + "工具执行结果:" + result
+            new_messages = messages[:-1] + [{"role": "user", "message": new_query}]
+            async for item in self.execute(prompt=new_messages, all_states=all_states, stream=stream):
                 yield item
 
     async def re_params_extract(self, params_content):
@@ -125,3 +146,4 @@ class Agent:
         execute_result = await self.tool_call_executor.execute(self.tools[function_name], function_params_json, all_states)
         result = execute_result['execute_result']['result']
         return result
+

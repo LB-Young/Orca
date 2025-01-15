@@ -4,7 +4,7 @@ variabes:
     "recommend_path":"F:/logs/orca/output/finance_recommend/1217_recommend.txt"
 }
 orca:
-@finance_news_search("查询50篇关于金融领域的新闻") -> finance_news(list)
+@finance_news_search("查询10篇关于金融领域的新闻") -> finance_news(list)
 FOR $item in $finance_news:
     @condition_judge("input"="$item", "categories"=["国家政策","企业动态","股市行情","财经事件","观点评论","民生消费"]) -> finance_news_flag
     IF $finance_news_flag == "国家政策":

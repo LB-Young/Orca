@@ -21,7 +21,7 @@ from Orca import all_tools
 from tools import other_tools
 
 
-orca_prompt_path = r"F:\Cmodels\Orca_branch\main\Orca\examples\multi_roles\multi_roles.orca"
+orca_prompt_path = r"F:\Cmodels\Orca_branch\main\Orca\examples\rag_agent\rag_agent.orca"
 
 
 orca_prompt_path = abs_path[:abs_path.index("example")] + orca_prompt_path[orca_prompt_path.index("examples"):]
@@ -112,7 +112,7 @@ async def main():
         logger.info("--"*50)
         variables["query"].append({"role":"assistant", "message":res['variables_pool'].get_variables('final_result')})
         query = input('请输入问题：')
-    
+
 if __name__ == '__main__':
     import asyncio
     asyncio.run(main())

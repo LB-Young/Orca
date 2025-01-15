@@ -12,8 +12,8 @@ class AgentInitAnalysis:
 
     async def analysis(self, prompt_content, all_states=None):
         prompt_content = await replace_variable(prompt_content, all_states)
-        roles, tools, describe_content = await self.get_roles_tools(prompt_content, all_states)
-        cur_agent = Agent(roles, tools)
+        roles, tools, describe_content, system_prompt = await self.get_roles_tools(prompt_content, all_states)
+        cur_agent = Agent(roles, tools, system_prompt)
         agent_msg = {
             "object":cur_agent,
             "describe":describe_content
@@ -33,7 +33,7 @@ class AgentInitAnalysis:
             prompt_content = prompt_content[1:-1].strip()
         else:
             raise Exception(f"agent init failed! {prompt_content} is invalid")
-        pattern = r'((roles)|(tools)|(describe)) *='
+        pattern = r'((roles)|(tools)|(describe)|(prompt)) *='
         match = re.search(pattern, prompt_content)
         match_res = {}
         past_start = 0
@@ -59,7 +59,15 @@ class AgentInitAnalysis:
                 all_key.append("tools")
             elif "describe" in key:
                 all_key.append("describe")
+            elif "prompt" in key:
+                all_key.append("prompt")
         all_value = [prompt_content[all_end[i]:all_start[i + 1]].strip() for i in range(len(all_end))]
+
+        roles_content = None
+        tools_content = None
+        describe_content = None
+        prompt_content = None
+
         for cur_key, cur_value in zip(all_key, all_value):
             if cur_value.strip()[-1] == ",":
                 cur_value = cur_value.strip()[:-1]
@@ -69,20 +77,30 @@ class AgentInitAnalysis:
                 tools_content = cur_value
             elif "describe" in cur_key:
                 describe_content = cur_value
+            elif "prompt" in cur_key:
+                prompt_content = cur_value
         try:
-            roles = json.loads(roles_content)
-            if "default" not in tools_content or len(tools_content)>3:
-                tools = eval(tools_content)
-                if isinstance(tools, dict):
-                    return roles, tools, describe_content
-                elif isinstance(tools, list):
-                    used_tools = {}
-                    for key, value in all_states['tools_agents_pool'].get_tools().items():
-                        if key in tools:
-                            used_tools[key] = value
-                    return roles, used_tools, describe_content
+            if roles_content is not None:
+                roles = json.loads(roles_content)
             else:
-                tools = all_states['tools_agents_pool'].get_tools()
-                return roles, tools, describe_content
+                roles = {}
+            
+            if "tools" not in all_key:
+                used_tools = {}
+                return roles, used_tools, describe_content, prompt_content
+            else:
+                if "default" not in tools_content or len(tools_content)>3:
+                    tools = eval(tools_content)
+                    if isinstance(tools, dict):
+                        return roles, tools, describe_content, prompt_content
+                    elif isinstance(tools, list):
+                        used_tools = {}
+                        for key, value in all_states['tools_agents_pool'].get_tools().items():
+                            if key in tools:
+                                used_tools[key] = value
+                        return roles, used_tools, describe_content, prompt_content
+                else:
+                    tools = all_states['tools_agents_pool'].get_tools()
+                    return roles, tools, describe_content, prompt_content
         except:
             raise Exception(f"agent init failed! roles or tools is not json format! roles:{roles_content}, tools:{tools_content}")

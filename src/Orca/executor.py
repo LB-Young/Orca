@@ -22,6 +22,7 @@ class Executor:
         # Return the result
         execute_state = "prompt"
         for index, prompt_segment in enumerate(prompt_segments):
+            print("当前执行语句：", str(prompt_segment)[:100])
             all_states, execute_state = await self.segment_execute(prompt_segment=prompt_segment, all_states=all_states)
             if execute_state == "exit":
                 break
@@ -162,10 +163,10 @@ class Executor:
             elif add_type == "->>":
                 all_states['variables_pool'].add_variable_value(res_variable_name,result,variable_type)
             all_states['variables_pool'].add_variable("final_result", result, variable_type)
-        try:
-            logger.info("当前步骤结果:", str(result))
-        except:
-            print("当前步骤结果:", str(result))
+        # try:
+        #     logger.info("当前步骤结果:", str(result))
+        # except:
+        #     print("当前步骤结果:", str(result))
         return all_states, execute_state
     
     async def prompt_segment_analysis(self, prompt_segment):

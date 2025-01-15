@@ -41,4 +41,7 @@ class VariablesPool:
         if variable_name is None:
             return self.variables
         else:
-            return self.variables[variable_name]
+            try:
+                return self.variables[variable_name]
+            except:
+                return "$" + variable_name

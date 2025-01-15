@@ -1,0 +1,82 @@
+default_agent:False
+variabes:
+{
+    "recommend_path":"F:/logs/orca/output/finance_recommend/0106_recommend.txt"
+}
+orca:
+@finance_news_search("查询50篇关于金融领域的新闻") -> finance_news(list)
+FOR $item in $finance_news:
+    @condition_judge("input"="$item", "categories"=["国家政策","企业动态","股市行情","财经事件","观点评论","民生消费"]) -> finance_news_flag
+    IF $finance_news_flag == "国家政策":
+    $item ->> contry_policy
+    elif $finance_news_flag == "企业动态":
+    $item ->> company_dynamic
+    elif $finance_news_flag == "股市行情":
+    $item ->> stock_market
+    elif $finance_news_flag == "财经事件":
+    $item ->> finance_event
+    elif $finance_news_flag == "观点评论":
+    $item ->> view_comment
+    elif $finance_news_flag == "民生消费":
+    $item ->> life_consumption
+    END
+END
+
+我是一个股民，收集了今天的新闻请你对这些新闻做总结，新闻内容：\n$contry_policy -> contry_policy_summary
+我是一个股民，收集了今天的新闻请你对这些新闻做总结，新闻内容：\n$company_dynamic -> company_dynamic_summary
+我是一个股民，收集了今天的新闻请你对这些新闻做总结，新闻内容：\n$stock_market -> stock_market_summary
+我是一个股民，收集了今天的新闻请你对这些新闻做总结，新闻内容：\n$finance_event -> finance_event_summary
+我是一个股民，收集了今天的新闻请你对这些新闻做总结，新闻内容：\n$view_comment -> view_comment_summary
+我是一个股民，收集了今天的新闻请你对这些新闻做总结，新闻内容：\n$life_consumption -> life_consumption_summary
+我是一个股民，想要判断明天是否需要买进股票或者卖出股票，我收集了今天的新闻，请你帮我分析新闻中的内容并提出投资建议。
+新闻内容：
+国家政策：$contry_policy_summary
+
+企业动态：$company_dynamic_summary
+
+股市行情：$stock_market_summary\
+
+财经事件：$finance_event_summary
+
+观点评论：$view_comment_summary
+
+民生消费：$life_consumption_summary
+
+
+请你基于对这些新闻内容生成明天的投资建议。 -> recommend
+
+@save2local("content"="
+投资建议$recommend 
+新闻总结：
+国家政策：$contry_policy_summary
+企业动态：$company_dynamic_summary
+股市行情：$stock_market_summary
+财经事件：$finance_event_summary
+观点评论：$view_comment_summary
+民生消费：$life_consumption_summary", "path"="$recommend_path") -> recommend_path
+
+
+@send_email("content"="## YoungL，我为您生成了明天的投资建议（以下内容进攻参考）
+
+# 投资建议:
+$recommend
+
+# 新闻总结：
+
+### 国家政策：
+$contry_policy_summary
+
+### 企业动态：
+$company_dynamic_summary
+
+### 股市行情：
+$stock_market_summary
+
+### 财经事件：
+$finance_event_summary
+
+### 观点评论：
+$view_comment_summary
+
+### 民生消费：
+$life_consumption_summary", "subject"="daily finance recommend", "to"="lby15356@gmail.com") -> email

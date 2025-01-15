@@ -2,6 +2,7 @@ import json
 import copy
 import logging
 import inspect
+from Orca.utils.string_to_dict import parse_string_to_dict
 from Orca.segment_executor.llm_client import LLMClient
 from Orca.utils.variable_replace import replace_variable
 from Orca.utils.str_2_function import create_function_from_string
@@ -35,27 +36,32 @@ class FunctionCallAnalysis:
 
         else:
             if params_content[0] == "(" and params_content[-1] == ")" and "=" in params_content:
-                params_content = '"{' + params_content[1:-1] + '}"'
+                params_content = '{' + params_content[1:-1] + '}'
             params_dict = {}
             try:
                 params_dict = json.loads(params_content)
             except:
-                if all_states is None:
-                    raise Exception("All_states is None, can not extract function_call params")
-                else:
-                    self.config_dict = all_states['config'].get_configs()
-                    self.llm_client = LLMClient(config_dict=self.config_dict)
-                if module_name in all_tools.keys():
-                    module_params_describe = all_tools[module_name]['describe']
-                extracted_params_prompt = f"我想要调用一个函数。关于调用这个函数的要求是：\n{module_params_describe}\n\n目前我已知的内容是：{params_content}，请提取出调用函数需要的参数值，仅以json形式返回，不要返回其它内容。"
-                extracted_params = await self.llm_client.generate_answer(extracted_params_prompt)
-                if "```json" in extracted_params:
-                    extracted_params = extracted_params.strip().replace("```json","").replace("```", "")
-                try:
-                    params_dict = json.loads(extracted_params)
-                except:
-                    logger.error(extracted_params)
-                    raise Exception("Can parser extracted_params to json")
+                params_dict = await parse_string_to_dict(params_content)
+                if len(params_dict) == 0:
+                    if all_states is None:
+                        raise Exception("All_states is None, can not extract function_call params")
+                    else:
+                        self.config_dict = all_states['config'].get_configs()
+                        self.llm_client = LLMClient(config_dict=self.config_dict)
+                    if module_name in all_tools.keys():
+                        module_params_describe = all_tools[module_name]['describe']
+                    extracted_params_prompt = f"我想要调用一个函数。关于调用这个函数的要求是：\n{module_params_describe}\n\n目前我已知的内容是：{params_content}，请提取出调用函数需要的参数值，仅以json形式返回，不要返回其它内容。"
+                    extracted_params = await self.llm_client.generate_answer(extracted_params_prompt)
+                    if "```json" in extracted_params:
+                        extracted_params = extracted_params.strip().replace("```json","").replace("```", "")
+                    try:
+                        params_dict = json.loads(extracted_params)
+                    except:
+                        params_dict = await parse_string_to_dict(params_content)
+                        if len(params_dict) == 0:
+                            breakpoint()
+                            logger.error(extracted_params)
+                            raise Exception("Can not parser extracted_params to json")
             if isinstance(all_tools[module_name]['object'], str) and all_tools[module_name]['type'] == "python_init":
                 all_tools[module_name]['object'] = await create_function_from_string(all_tools[module_name]['object'])
             if isinstance(all_tools[module_name]['object'], str):
