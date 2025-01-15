@@ -63,7 +63,6 @@ class Agent:
 
     async def execute(self, prompt, all_states=None, stream=False):
         prompt = await replace_variable(prompt, all_states)
-
         prompt = self.role.replace("{prompt}", prompt).strip()
         result = await self.llm_call_executor.execute(content=prompt, all_states=all_states, stream=stream, variable_replaced=True)
         result = result['execute_result']['result']

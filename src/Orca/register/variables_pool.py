@@ -46,4 +46,7 @@ class VariablesPool:
         if variable_name is None:
             return self.variables
         else:
-            return self.variables[variable_name]
+            if variable_name in self.variables.keys():
+                return self.variables[variable_name]
+            else:
+                return variable_name

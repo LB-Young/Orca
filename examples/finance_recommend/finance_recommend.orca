@@ -1,7 +1,7 @@
 default_agent:False
 variabes:
 {
-    "recommend_path":"F:/logs/orca/output/finance_recommend/1217_recommend.txt"
+    "recommend_path":"F:/logs/orca/output/finance_recommend/0102_recommend.txt"
 }
 orca:
 @finance_news_search("查询50篇关于金融领域的新闻") -> finance_news(list)

@@ -120,6 +120,8 @@ class LLMClient:
         # print("prompt:", prompt)
         # print("self.client:", self.client)
         # print("self.llm_model_name:", self.llm_model_name)
+        if len(prompt) > 60000:
+            prompt = prompt[-60000]
         if not stream:
             if messages is None:
                 if tools is None:

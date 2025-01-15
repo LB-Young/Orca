@@ -1,9 +1,9 @@
 default_agent:False
 variabes:
 {
-    "video_url": "https://www.youtube.com/watch?v=SKBG1sqdyIU",
-    "translate_path":"F:/logs/orca/output/youtube_caption/openai-day12/translate_path.txt",
-    "summary_path":"F:/logs/orca/output/youtube_caption/openai-day12/summary_path.txt"
+    "video_url": "https://www.youtube.com/watch?v=syxKxA3oitw",
+    "translate_path":"F:/logs/orca/output/youtube_caption/红杉资本预测2025AI发展/translate_path.txt",
+    "summary_path":"F:/logs/orca/output/youtube_caption/红杉资本预测2025AI发展/summary_path.txt"
 }
 orca:
 @get_youtube_caption("提取视频“$video_url”的字幕内容") -> video_caption(str)

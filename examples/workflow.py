@@ -23,7 +23,7 @@ from Orca import OrcaExecutor
 from Orca import all_tools
 from tools import other_tools
 
-orca_prompt_path = r"F:\Cmodels\Orca_branch\stream_response\Orca\examples\paper_recommend\paper_recommend_topic.orca"
+orca_prompt_path = r"F:\Cmodels\Orca_branch\stream_response\Orca\examples\finance_recommend\finance_recommend.orca"
 
 orca_prompt_path = abs_path[:abs_path.index("example")] + orca_prompt_path[orca_prompt_path.index("examples"):]
 

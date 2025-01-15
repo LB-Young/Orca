@@ -93,7 +93,16 @@ async def main():
         
         executor = OrcaExecutor()
         executor.init_executor(init_parmas=init_params)
-        res, execute_state  = await executor.execute(prompt=content)
+        cur_answer = ""
+        response = await executor.execute(prompt=content, stream=True)
+        async for res, execute_state in response:
+            # print(res['variables_pool'].get_variables('final_result'))
+            if execute_state == "processed":
+                cur_answer += res['variables_pool'].get_variables('final_result')
+                print(res['variables_pool'].get_variables('final_result'), end="", flush=True)
+            else:
+                pass
+        
         while execute_state == "bp":
             mode = input("请输入运行模式：")
             new_init_params = {
@@ -108,9 +117,7 @@ async def main():
             executor.init_executor(init_parmas=new_init_params)
             res, execute_state = await executor.execute(content, breakpoint_infos=new_init_params, mode=mode)
 
-        logger.info(res['variables_pool'].get_variables('final_result'))
-        logger.info("--"*50)
-        variables["query"].append({"role":"assistant", "message":res['variables_pool'].get_variables('final_result')})
+        variables["query"].append({"role":"assistant", "message":cur_answer})
         query = input('请输入问题：')
     
 if __name__ == '__main__':

@@ -144,7 +144,9 @@ class Executor:
             # 分支结构处理
             self.branch_blook = BranchAnalysis()
             analysis_result = await self.branch_blook.analysis(pure_prompt, all_states)
-            all_states, execute_state = self.execute(analysis_result['analysis_result']['if_content'], all_states=all_states)
+            response = self.execute(analysis_result['analysis_result']['if_content'], all_states=all_states)
+            async for all_states, execute_state in response:
+                    all_states, execute_state = all_states, execute_state
             result = all_states['variables_pool'].get_variables('final_result')
         elif prompt_segment['type'] == "exit":
             self.exit_block  = ExitAnalysis()

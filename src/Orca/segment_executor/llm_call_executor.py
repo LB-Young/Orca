@@ -13,7 +13,7 @@ class ModelMessage(BaseModel):
 class LLMCallExecutor:
     def __init__(self):
         pass
-        
+
     async def execute(self, content, all_states=None, stream=False, variable_replaced=False):
         self.all_states = all_states
         if all_states is None:

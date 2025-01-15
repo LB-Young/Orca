@@ -49,6 +49,8 @@ class FunctionCallAnalysis:
                         self.llm_client = LLMClient(config_dict=self.config_dict)
                     if module_name in all_tools.keys():
                         module_params_describe = all_tools[module_name]['describe']
+                    else:
+                        module_params_describe = "没具体描述。"
                     extracted_params_prompt = f"我想要调用一个函数。关于调用这个函数的要求是：\n{module_params_describe}\n\n目前我已知的内容是：{params_content}，请提取出调用函数需要的参数值，仅以json形式返回，不要返回其它内容。"
                     extracted_params = await self.llm_client.generate_answer(extracted_params_prompt)
                     if "```json" in extracted_params:

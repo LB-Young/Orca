@@ -1,18 +1,18 @@
 default_agent:False
 variabes:
 {
-    "topic": "Agent",
-    "output_file": "F:/logs/orca/output/paper_recommend/Agent_0102.txt"
+    "topic": "CMP，CMP slurry，Density Functional Theory，Molecular Dynamics",
+    "output_file": "F:/logs/orca/output/paper_recommend/1227-1.txt"
 }
 orca:
 
-@arxiv_search("搜索20篇论文关于$topic的论文") -> papers(list)
+@arxiv_search("搜索30篇论文关于$topic的论文") -> papers(list)
 
 
 FOR $paper in $papers:
 对“$paper”中的内容用中文进行总结。
 要求：
-1、返回的内容包括:论文标题、论文链接、作者、研究团队、摘要总结、研究的问题、核心思路、实验的结果。
+1、返回的内容包括:论文标题、论文链接、作者、研究团队、摘要总结、研究的问题、核心思路、实验的结果、以及研究现状和待解决问题。
 2、结果按照markdown格式输出，如：
 """
 # 《Attention is all you need》
@@ -30,6 +30,8 @@ https://arxiv.org/……
 
 #### 实验的结果
 实验的结果（200字以上）
+
+#### 研究现状和待解决问题
 """
 3、结果不使用```markdown```包裹，直接返回答案字符串即可。
 ->> paper_summaries(list)
@@ -40,5 +42,5 @@ END
 
 @save2local("contents"=$prcessed_papers, "output_path"=$output_file) -> caption_path
 
-@send_email("content"=$prcessed_papers, "subject"="daily paper recommend", "to"="lby15356@gmail.com") -> email
+@send_email("content"=$prcessed_papers, "subject"="daily paper recommend", "to"="zhangmanman23@gmail.com") -> email
 
