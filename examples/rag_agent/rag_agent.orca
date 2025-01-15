@@ -4,6 +4,6 @@ variabes:
 orca:
 
 
-@agent_init(tools=["retrive_from_database"],  describe="一个检索增强生成系统", prompt="1、用户输入的问题，首先判断是否可以根据历史对话直接给出答案；\n2、如果可以根据历史对话直接生成答案，则直接由agent生成答案；\n3、如果无法根据历史对话生成答案，则需要先召回内容，再由agent生成答案；\n4、所有问题的答案只能参考自历史对话或检索内容，不可以自己编造；") -> new_agent
+@agent_init(tools=["retrive_from_database"],  describe="一个检索增强生成系统", prompt="1、用户输入的每一个新的问题，首先判断是否可以根据历史对话直接给出答案；\n2、如果可以根据历史对话直接生成答案，则直接由agent生成答案；\n3、如果无法根据历史对话生成答案，则需要先召回内容，再由agent生成答案；\n4、所有问题的答案只能参考自历史对话或检索内容，不可以自己编造；\n禁止提及检索内容和历史对话信息之外的内容；") -> new_agent
 @new_agent($query) -> result
 
