@@ -37,7 +37,7 @@ class OrcaExecutor:
             else:
                 pass
 
-    async def execute(self, prompt, breakpoint_infos=None, mode="c"):
+    async def execute(self, prompt, breakpoint_infos=None, mode="c", stream=False):
         if not breakpoint_infos:
             all_states = {
                 "variables_pool":self.variables_pool, 
@@ -46,7 +46,7 @@ class OrcaExecutor:
                 "config":self.config, 
             }
             executor = Executor()
-            response = await executor.execute(prompt=prompt, all_states=all_states, mode="c")
+            response = executor.execute(prompt=prompt, all_states=all_states, mode="c", stream=stream)
             return response
         else:
             self.variables_pool.init_variables(variables=breakpoint_infos["variables"])
@@ -62,6 +62,6 @@ class OrcaExecutor:
                 "prompt_segments":breakpoint_infos['prompt_segments'],
             }
             executor = Executor()
-            response = await executor.execute(prompt=prompt, all_states=all_states, mode=mode)
+            response = executor.execute(prompt=prompt, all_states=all_states, mode=mode, stream=stream)
             return response
 

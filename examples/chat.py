@@ -5,6 +5,7 @@
 # tips       :
 import os
 import sys
+from collections.abc import AsyncGenerator
 abs_path = os.path.abspath(__file__)
 cur_path = abs_path.split("examples")[0] + "\src"
 sys.path.append(rf"{cur_path}")
@@ -13,16 +14,16 @@ sys.path.append(r"F:\Cmodels\Personal_project\tools_set")
 import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+logging.getLogger("httpx").setLevel(logging.ERROR)
 
 import json
+import openai
 from dotenv import load_dotenv
 from Orca import OrcaExecutor
 from Orca import all_tools
 from tools import other_tools
 
-
 orca_prompt_path = r"F:\Cmodels\Orca_branch\main\Orca\examples\rag_agent\rag_agent.orca"
-
 
 orca_prompt_path = abs_path[:abs_path.index("example")] + orca_prompt_path[orca_prompt_path.index("examples"):]
 
@@ -75,6 +76,7 @@ variables["query"] = []
 
 async def main():
     query = input('请输入问题：')
+    # query = "介绍一下p-tuning和prefix-tuning"
     while len(query) != 0:
         variables["query"].append({"role":"user", "message":query})
         init_params = {
@@ -93,7 +95,16 @@ async def main():
         
         executor = OrcaExecutor()
         executor.init_executor(init_parmas=init_params)
-        res, execute_state  = await executor.execute(prompt=content)
+        response = await executor.execute(prompt=content, stream=True)
+        cur_response = ""
+        async for res, execute_state in response:
+            # print(res['variables_pool'].get_variables('final_result'))
+            if execute_state == "processed":
+                cur_response += res['variables_pool'].get_variables('final_result')
+                print(res['variables_pool'].get_variables('final_result'), end="", flush=True)
+            else:
+                pass
+        
         while execute_state == "bp":
             mode = input("请输入运行模式：")
             new_init_params = {
@@ -108,9 +119,7 @@ async def main():
             executor.init_executor(init_parmas=new_init_params)
             res, execute_state = await executor.execute(content, breakpoint_infos=new_init_params, mode=mode)
 
-        logger.info(res['variables_pool'].get_variables('final_result'))
-        logger.info("--"*50)
-        variables["query"].append({"role":"assistant", "message":res['variables_pool'].get_variables('final_result')})
+        variables["query"].append({"role":"assistant", "message":cur_response})
         query = input('请输入问题：')
 
 if __name__ == '__main__':
