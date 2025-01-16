@@ -60,7 +60,6 @@ config = {
     "together_llm_model_name": together_llm_model_name
 }
 
-
 with open(orca_prompt_path, "r", encoding="utf-8") as f:
     orca_file = f.read()
 
@@ -102,8 +101,6 @@ async def main():
             print(res['variables_pool'].get_variables('final_result'), end="", flush=True)
         else:
             pass
-
-
 
     while execute_state == "bp":
         mode = input("请输入运行模式：")

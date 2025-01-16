@@ -25,8 +25,7 @@ class Executor:
         execute_state = "prompt"
         for index, prompt_segment in enumerate(prompt_segments):
             async for all_states, execute_state in self.segment_execute(prompt_segment=prompt_segment, all_states=all_states, stream=stream):
-                execute_state = "processed"
-                yield all_states, execute_state
+                yield all_states, "processed"
             if execute_state == "exit":
                 break
             if  execute_state == "bp":
@@ -115,7 +114,7 @@ class Executor:
             analysis_result = await self.agent_init.analysis(pure_prompt, all_states)
             all_states = analysis_result['all_states']
             all_states['tools_agents_pool'].add_agents(agents={res_variable_name.strip():analysis_result['analysis_result']['agent_object']})
-            result = "agent 已经注册！"
+            result = "agent 已经注册！\n"
                 
         elif prompt_segment['type'] == "function_init":
             self.function_init = FunctionInitAnalysis()
@@ -160,7 +159,7 @@ class Executor:
             result = "进入bp"
             execute_state = "bp"
 
-        logger.debug("当前步骤结果:", str(result))
+        # logger.debug("当前步骤结果:", str(result))
 
         processed_result = ""
         if isinstance(result, AsyncGenerator):
@@ -174,7 +173,7 @@ class Executor:
                     all_states['variables_pool'].add_variable("final_result", line, "str")
                 yield all_states, execute_state
             all_states['variables_pool'].add_variable("final_result", "\n\n", "str")
-            yield all_states, execute_states
+            yield all_states, execute_state
         else:
             if isinstance(result, openai.Stream):
                 for line in result:
