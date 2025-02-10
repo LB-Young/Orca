@@ -8,12 +8,20 @@ logger = logging.getLogger(__name__)
 
 class LLMClient:
     def __init__(self, config_dict):
-        self.default_client = OpenAI(api_key=config_dict["default_model_api_key"], base_url=config_dict['default_model_base_url'])
-        self.default_llm_model_name = config_dict['default_llm_model_name']
+        if config_dict['default_model_base_url'] != "https://api.siliconflow.cn/v1/chat/completions":
+            self.default_type = "openai"
+            self.default_client = OpenAI(api_key=config_dict["default_model_api_key"], base_url=config_dict['default_model_base_url'])
+            self.default_llm_model_name = config_dict['default_llm_model_name']
+        else:
+            self.default_type = "siliconflow"
+            self.siliconflow_key = config_dict["default_model_api_key"]
+            self.siliconflow_url = config_dict['default_model_base_url']
+            self.siliconflow_model_name = config_dict['default_llm_model_name']
 
         self.deepseek_client = OpenAI(api_key=config_dict["deepseek_chat_model_api_key"], base_url=config_dict['deepseek_chat_model_base_url'])
         self.deepseek_llm_model_name = config_dict['deepseek_chat_llm_model_name'].split(",")
         self.deepseek_code_llm_model_name = config_dict['deepseek_code_llm_model_name'].split(",")
+        
         self.groq_client = Groq(api_key=config_dict["groq_api_key"])
         self.groq_llm_model_name = config_dict['groq_llm_model_name'].split(",")
 
@@ -21,9 +29,12 @@ class LLMClient:
         self.together_llm_model_name = config_dict['together_llm_model_name'].split(",")
 
     async def get_client(self, prompt, model_name=None):
-        self.client = self.default_client
-        self.llm_model_name = self.default_llm_model_name
-        return
+        if self.default_type == "openai":
+            self.client = self.default_client
+            self.llm_model_name = self.default_llm_model_name
+            return
+        elif self.default_type == "siliconflow":
+            return None
         if model_name is None:
             self.client = None
             self.llm_model_name = None
@@ -122,6 +133,36 @@ class LLMClient:
         # print("self.llm_model_name:", self.llm_model_name)
         if len(prompt) > 60000:
             prompt = prompt[-60000]
+
+        if self.default_type == "siliconflow":
+            import requests
+            payload = {
+                "model": self.siliconflow_model_name,
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": prompt
+                    }
+                ],
+                "stream": True,
+                "max_tokens": 512,
+                "stop": ["null"],
+                "temperature": 0.7,
+                "top_p": 0.7,
+                "top_k": 50,
+                "frequency_penalty": 0.5,
+                "n": 1,
+                "response_format": {"type": "text"},
+            }
+            headers = {
+                "Authorization": f"Bearer {self.siliconflow_key}",
+                "Content-Type": "application/json"
+            }
+            breakpoint()
+            response = requests.request("POST", self.siliconflow_url, json=payload, headers=headers)
+            print(response.text)
+            return response
+
         if not stream:
             if messages is None:
                 if tools is None:

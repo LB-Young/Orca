@@ -9,7 +9,7 @@ from collections.abc import AsyncGenerator
 abs_path = os.path.abspath(__file__)
 cur_path = abs_path.split("examples")[0] + "src"
 sys.path.append(rf"{cur_path}")
-sys.path.append(r"F:\Cmodels\Personal_project\tools_set")
+sys.path.append("/Users/liubaoyang/Documents/YoungL/Personal_project/tools_set")
 
 import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -23,20 +23,20 @@ from Orca import OrcaExecutor
 from Orca import all_tools
 from tools import other_tools
 
-orca_prompt_path = r"F:\Cmodels\Orca_branch\stream\Orca\examples\finance_recommend\finance_recommend_old.orca"
+orca_prompt_path = "/Users/liubaoyang/Documents/YoungL/Orca/examples/wechatmp/wechatmp_new.orca"
 
 orca_prompt_path = abs_path[:abs_path.index("example")] + orca_prompt_path[orca_prompt_path.index("examples"):]
 
 def load_api_key(platform):
-    with open(r"C:\Users\86187\Desktop\api_key.json", "r", encoding="utf-8") as f:
+    with open(r"/Users/liubaoyang/Documents/windows/api_key.json", "r", encoding="utf-8") as f:
         api_dict = json.load(f)
     # print(api_dict)
     return api_dict.get(platform, None)
 
 load_dotenv()
-default_api_key = load_api_key("deepseek")
-default_base_url = "https://api.deepseek.com"
-default_llm_model_name = "deepseek-chat"
+default_api_key = load_api_key("aliyun")
+default_base_url = "https://dashscope.aliyuncs.com/compatible-mode/v1"
+default_llm_model_name = "deepseek-v3"
 deepseek_api_key = load_api_key("deepseek")
 deepseek_model_base_url = "https://api.deepseek.com"
 deepseek_llm_model_name = "deepseek-chat"
