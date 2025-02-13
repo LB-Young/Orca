@@ -23,7 +23,7 @@ from Orca import OrcaExecutor
 from Orca import all_tools
 from tools import other_tools
 
-orca_prompt_path = "/Users/liubaoyang/Documents/YoungL/Orca/examples/rag_agent/rag_agent.orca"
+orca_prompt_path = "/Users/liubaoyang/Documents/YoungL/Orca/examples/multi_roles/multi_roles.orca"
 
 orca_prompt_path = abs_path[:abs_path.index("example")] + orca_prompt_path[orca_prompt_path.index("examples"):]
 
@@ -83,7 +83,7 @@ async def main():
     query = input('请输入问题：')
     # query = "介绍一下p-tuning和prefix-tuning"
     while len(query) != 0:
-        variables["query"].append({"role":"user", "message":query})
+        variables["query"].append({"role":"user", "content":query})
         init_params = {
             "configs": config,
             "memories": [],
@@ -124,7 +124,7 @@ async def main():
             executor.init_executor(init_parmas=new_init_params)
             res, execute_state = await executor.execute(content, breakpoint_infos=new_init_params, mode=mode)
 
-        variables["query"].append({"role":"assistant", "message":cur_response})
+        variables["query"].append({"role":"assistant", "content":cur_response})
         query = input('请输入问题：')
 
 if __name__ == '__main__':

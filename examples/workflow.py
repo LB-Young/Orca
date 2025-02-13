@@ -10,7 +10,6 @@ abs_path = os.path.abspath(__file__)
 cur_path = abs_path.split("examples")[0] + "src"
 sys.path.append(rf"{cur_path}")
 sys.path.append("/Users/liubaoyang/Documents/YoungL/Personal_project/tools_set")
-
 import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -23,7 +22,7 @@ from Orca import OrcaExecutor
 from Orca import all_tools
 from tools import other_tools
 
-orca_prompt_path = "/Users/liubaoyang/Documents/YoungL/Orca/examples/wechatmp/wechatmp_new.orca"
+orca_prompt_path = "/Users/liubaoyang/Documents/YoungL/Orca/examples/doc2chart/extract_tables_images_from_pdf.orca"
 
 orca_prompt_path = abs_path[:abs_path.index("example")] + orca_prompt_path[orca_prompt_path.index("examples"):]
 
@@ -93,8 +92,8 @@ init_params = {
         }
 async def main():
     executor = OrcaExecutor()
-    executor.init_executor(init_parmas=init_params)
-    response = await executor.execute(prompt=content, stream=True)
+    executor.init_executor(init_params=init_params)
+    response = await executor.execute(prompt=content, stream=False)
     async for res, execute_state in response:
         # print(res['variables_pool'].get_variables('final_result'))
         if execute_state == "processed":

@@ -73,16 +73,24 @@ class Agent:
 
     async def execute(self, prompt, all_states=None, stream=False):
         if isinstance(prompt, str):
-            messages = eval(prompt)
+            try:
+                tmp_messages = eval(prompt)
+                if isinstance(tmp_messages, str):
+                    messages = [{"role":"user", "content":tmp_messages}]
+                else:
+                    messages = tmp_messages
+            except:
+                messages = [{"role":"user", "content":prompt}]
         else:
             messages = prompt
+        print(messages)
         if len(messages) == 1:
             self.role = self.role.replace(r"{history_message}", "")
-            query = messages[-1]["message"]
+            query = messages[-1]["content"]
         else:
             history_messages = "## 历史对话信息为：\n" + str(messages[:-1]) + "\n"
             self.role = self.role.replace(r"{history_message}", history_messages)
-            query = messages[-1]["message"]
+            query = messages[-1]["content"]
         query = await replace_variable(prompt=query, all_states=all_states)
         cur_prompt = self.role.replace("{prompt}", query).strip()
         result = await self.llm_call_executor.execute(content=cur_prompt, all_states=all_states, stream=stream, variable_replaced=True)

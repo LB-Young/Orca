@@ -12,8 +12,8 @@ class OrcaExecutor:
         self.variables_pool = VariablesPool()
         self.tools_agents_pool = ToolsAgentsPool()
 
-    def init_executor(self, init_parmas):
-        for key, value in init_parmas.items():
+    def init_executor(self, init_params):
+        for key, value in init_params.items():
             if key == "debug_infos":
                 self.debug_infos.init_debug_info(debug_info=value)
             elif key == "variables":
@@ -27,7 +27,7 @@ class OrcaExecutor:
             elif key == "default_agent":
                 if value['flag']:
                     roles = value['roles']
-                    tools = init_parmas['tools']
+                    tools = init_params['tools']
                     default_agent = Agent(roles=roles, tools=tools)
                     default_agent_msg = {
                         "object": default_agent,

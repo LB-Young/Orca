@@ -18,11 +18,13 @@ class FunctionCallAnalysis:
         all_agents = all_states['tools_agents_pool'].get_agents()
         module_name = pure_prompt.strip().split("(")[0].replace("@", "").strip()
         params_content = pure_prompt.split(module_name)[-1].strip()
+        raw_params_content = params_content
+        if raw_params_content[0] == "(" and raw_params_content[-1] == ")" and "=" in raw_params_content:
+            raw_params_content = '{' + raw_params_content[1:-1] + '}'
         params_content = await replace_variable(params_content, all_states)
         if module_name in all_agents.keys():
             if params_content[0] == "(" and params_content[-1] == ")":
                 params_content = params_content[1:-1]
-                
             # agent_response = await all_agents[module_name].execute(params_content)
             result = {
                     "analysis_result":{
@@ -39,9 +41,14 @@ class FunctionCallAnalysis:
                 params_content = '{' + params_content[1:-1] + '}'
             params_dict = {}
             try:
-                params_dict = json.loads(params_content)
+                params_content = json.loads(params_content)
             except:
-                params_dict = await parse_string_to_dict(params_content)
+                tmp_params_dict = await parse_string_to_dict(raw_params_content)
+                params_dict = {}
+                for key, value in tmp_params_dict.items():
+                    new_value = await replace_variable(value, all_states)
+                    params_dict[key] = new_value
+
                 if len(params_dict) == 0:
                     if all_states is None:
                         raise Exception("All_states is None, can not extract function_call params")

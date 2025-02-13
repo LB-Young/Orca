@@ -6,6 +6,13 @@ lxml
 markdown2
 openai
 PyPDF2
+redis
 selenium
+sseclient
 together
 youtube_transcript_api
+streamlit
+fastapi
+uvicorn
+websockets
+pydantic
