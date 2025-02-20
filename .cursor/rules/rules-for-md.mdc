@@ -1,0 +1,8 @@
+---
+description: md rules
+globs: *.md,.MD
+---
+
+1、You'll need to write a professional readme file for the entire project. 
+2、The functions and characteristics of the project should be fully described. 
+3、Given the usage example.

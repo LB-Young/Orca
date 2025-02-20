@@ -2,11 +2,12 @@ default_agent:False
 variabes:
 {
     "type_sets":["LLM","RAG","Agent","多模态","音频","计算机视觉","其它"], 
-    "research_direction":["LLM","RAG","Agent","多模态"]
+    "research_direction":["LLM","RAG","Agent","多模态"],
+    "email_list": ["lby15356@gmail.com", "xyzhang290@gmail.com"]
 }
 orca:
 
-@paper_with_code_search("搜索10篇论文") -> papers(list)
+@paper_with_code_search("搜索30篇论文") -> papers(list)
 
 
 FOR $paper in $papers:
@@ -51,5 +52,5 @@ END
 
 
 
-@send_email("content"="YoungL！\n我为您收集了最新的论文，并根据您的研究方向给出以下阅读建议：\n\n-----------------------------------------------------------------------------------------------------------------------------\n$recommend", "subject"="daily paper recommend", "to"="lby15356@gmail.com") -> email
+@send_email("content"="YoungL！\n我为您收集了最新的论文，并根据您的研究方向给出以下阅读建议：\n\n-----------------------------------------------------------------------------------------------------------------------------\n$recommend", "subject"="daily paper recommend", "to"=$email_list) -> email
 

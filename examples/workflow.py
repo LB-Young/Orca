@@ -93,7 +93,7 @@ init_params = {
 async def main():
     executor = OrcaExecutor()
     executor.init_executor(init_params=init_params)
-    response = await executor.execute(prompt=content, stream=False)
+    response = await executor.execute(prompt=content, stream=True)
     async for res, execute_state in response:
         # print(res['variables_pool'].get_variables('final_result'))
         if execute_state == "processed":

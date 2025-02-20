@@ -10,7 +10,7 @@ async def save2local(contents="", path="", params_format=False):
                 f.write(contents)
             path = "result.txt"
         else:
-            path = eval(path)
+            path = path
             with open(path, "w", encoding="utf-8") as f:
                 f.write(contents)
         return f"内容已经保存至{path}!"

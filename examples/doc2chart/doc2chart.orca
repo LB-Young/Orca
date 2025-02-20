@@ -1,7 +1,23 @@
 default_agent:False
 variabes:
 {
-    "file_path":"/Users/liubaoyang/Desktop/flowchart/难选高钙白钨矿选矿技术研究.pdf"
-    "picture_path":"/Users/liubaoyang/Desktop/flowchart/tmp_pictures"
+    "file_path":"/Users/liubaoyang/Desktop/flowchart/难选高钙白钨矿选矿技术研究.pdf",
+    "pdf_page_images_path":"/Users/liubaoyang/Desktop/flowchart/pdf_page_images_path",
+    "pdf_page_image_layout_res_path":"/Users/liubaoyang/Desktop/flowchart/pdf_page_image_layout_res",
+    "picture_path":"/Users/liubaoyang/Desktop/flowchart/extract_out",
+    "mermaid_path":"/Users/liubaoyang/Desktop/flowchart/mermaid_pic.jpg",
+    "query":"高钙白钨矿选矿技术的流程"
 }
 orca:
+
+@pdf2pictures(将$file_path文件转换成图片保存到$pdf_page_images_path文件夹下) -> flag_content_1
+
+@images_layout_analysis(对$pdf_page_images_path文件夹下的所有图片中的内容做layout分析，结果保存到$pdf_page_image_layout_res_path目录下) -> flag_content_2
+
+@extract_tables_images_from_images(对$pdf_page_images_path文件夹下的所有文件，提取表格和图片，提取结果保存至$picture_path) -> flag_content_3
+
+@vl_model("pic_path"=$pdf_page_images_path, "query"="读取参考图片中的内容，总结出一个graph TD格式的流程图，主题是：$query。\n注意：1、流程图要详细描述图片的全部重要内容（所有表的标题、关键信息、关键结论等）。\n2、表标题插入流程图中作为节点。\n3、直接输出graph TD格式的流程图，不要返回其他任何内容。") -> flowchart
+
+@mermaid_add_picture("mermaid_string"="$flowchart", "pic_path"="$picture_path") -> pic_1
+
+@flow_chart("mermaid_string"=$pic_1, "output_path"=$mermaid_path) -> flag_content_4
