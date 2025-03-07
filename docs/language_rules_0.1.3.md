@@ -1,4 +1,4 @@
-# Orca language rules V0.1.2
+# Orca language rules V0.1.3
 
 ## 1. 变量标识符
 - 变量以数字字母下划线组成并且不能以数字开头，要用“$variable”表示，如果变量后有其它数字、字母、下划线，需要在末尾加空格。
@@ -60,7 +60,7 @@ def flow1():
 
 ## 7. agent定义语句(支持页面配置、语言内配置临时agent)
 ```
-@agent_init(roles = {}, tools = {}, agents={}, describe="")->agent_name
+@agent_init(tools = {}, system_prompt="")->agent_name
 ```
 
 ## 8. agent调用语句

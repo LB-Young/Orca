@@ -25,16 +25,49 @@ class LLMCallExecutor:
             content = await replace_variable(content, all_states)
         type = await self.judge_prompt_type(content)
         if type == "prompt":
-            response = await self.llm_client.generate_answer(prompt=content, stream=stream)
+            messages = [{"role": "user", "content": content}]
+            response = await self.llm_client.generate_answer(messages=messages, stream=stream)
         elif type == "code":
-            response = await self.llm_client.generate_code(prompt=content, stream=stream)
-        result = {
-            "execute_result": {
-                "result":response
-            },
-            "all_states":all_states
-        }
-        return result
+            messages = [{"role":"system", "content":"你需要分析当前问题，并给出解决当前问题的python代码。"},{"role": "user", "content": content}]
+            response = await self.llm_client.generate_answer(messages=messages, stream=stream)
+
+        if stream:
+            # 处理流式响应
+            async def stream_processor():
+                all_answer = ""
+                all_think = ""
+                try:
+                    async for chunk in response:
+                        all_answer += chunk["answer"]
+                        all_think += chunk["think"]
+                        yield {"content": chunk["answer"], "reasoning_content": chunk["think"]}
+                except TypeError:
+                    # 如果response不是异步迭代器，则按照非流式处理
+                    if isinstance(response, dict) and "answer" in response and "think" in response:
+                        all_answer = response["answer"]
+                        all_think = response["think"]
+                        yield {"content": all_answer, "reasoning_content": all_think}
+                
+                # 将最终结果存储到all_states中
+                all_states['variables_pool'].add_variable("final_result", {"content": all_answer, "reasoning_content": all_think}, dict)
+            
+            return {
+                "execute_result": {
+                    "result": stream_processor()
+                },
+                "all_states": all_states
+            }
+        else:
+            # 处理非流式响应
+            all_states['variables_pool'].add_variable("final_result", {"content": response["answer"], "reasoning_content": response["think"]}, dict)
+            
+            result = {
+                "execute_result": {
+                    "result": response
+                },
+                "all_states": all_states
+            }
+            return result
 
     async def judge_prompt_type(self, prompt):
         if prompt.strip().startswith("CODE:"):

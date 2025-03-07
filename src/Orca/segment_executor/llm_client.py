@@ -2,39 +2,44 @@ from openai import OpenAI
 from together import Together
 from groq import Groq
 import logging
+import requests
 
 logger = logging.getLogger(__name__)
 
 
 class LLMClient:
     def __init__(self, config_dict):
-        if config_dict['default_model_base_url'] != "https://api.siliconflow.cn/v1/chat/completions":
-            self.default_type = "openai"
-            self.default_client = OpenAI(api_key=config_dict["default_model_api_key"], base_url=config_dict['default_model_base_url'])
-            self.default_llm_model_name = config_dict['default_llm_model_name']
-        else:
+        #设置默认LLM模型
+        if config_dict['default_model_base_url'] == "https://api.siliconflow.cn/v1/chat/completions":
             self.default_type = "siliconflow"
             self.siliconflow_key = config_dict["default_model_api_key"]
             self.siliconflow_url = config_dict['default_model_base_url']
             self.siliconflow_model_name = config_dict['default_llm_model_name']
+        else:
+            self.default_type = "openai"
+            self.default_client = OpenAI(api_key=config_dict["default_model_api_key"], base_url=config_dict['default_model_base_url'])
+            self.default_llm_model_name = config_dict['default_llm_model_name']
 
+        # 设置deepseek平台模型
         self.deepseek_client = OpenAI(api_key=config_dict["deepseek_chat_model_api_key"], base_url=config_dict['deepseek_chat_model_base_url'])
         self.deepseek_llm_model_name = config_dict['deepseek_chat_llm_model_name'].split(",")
         self.deepseek_code_llm_model_name = config_dict['deepseek_code_llm_model_name'].split(",")
         
+        # 设置groq平台模型
         self.groq_client = Groq(api_key=config_dict["groq_api_key"])
         self.groq_llm_model_name = config_dict['groq_llm_model_name'].split(",")
 
+        # 设置together平台模型
         self.together_client = Together(api_key=config_dict["together_api_key"])
         self.together_llm_model_name = config_dict['together_llm_model_name'].split(",")
 
     async def get_client(self, prompt, model_name=None):
-        if self.default_type == "openai":
-            self.client = self.default_client
-            self.llm_model_name = self.default_llm_model_name
-            return
-        elif self.default_type == "siliconflow":
-            return None
+        # if self.default_type == "openai":
+        #     self.client = self.default_client
+        #     self.llm_model_name = self.default_llm_model_name
+        #     return
+        # elif self.default_type == "siliconflow":
+        #     return None
         if model_name is None:
             self.client = None
             self.llm_model_name = None
@@ -127,23 +132,16 @@ class LLMClient:
     async def generate_answer(self, prompt=None, messages=None, tools=None, model_name=None, stream=False):
         if messages is not None:
             prompt = messages[-1]['content']
+
         await self.get_client(prompt, model_name)
-        # print("prompt:", prompt)
-        # print("self.client:", self.client)
-        # print("self.llm_model_name:", self.llm_model_name)
-        if len(prompt) > 60000:
-            prompt = prompt[-60000]
+
+        if len(messages[-1]['content']) > 60000:
+            messages[-1]['content'] = messages[-1]['content'][-60000]
 
         if self.default_type == "siliconflow":
-            import requests
             payload = {
                 "model": self.siliconflow_model_name,
-                "messages": [
-                    {
-                        "role": "user",
-                        "content": prompt
-                    }
-                ],
+                "messages": messages,
                 "stream": True,
                 "max_tokens": 512,
                 "stop": ["null"],
@@ -158,9 +156,8 @@ class LLMClient:
                 "Authorization": f"Bearer {self.siliconflow_key}",
                 "Content-Type": "application/json"
             }
-            breakpoint()
-            response = requests.request("POST", self.siliconflow_url, json=payload, headers=headers)
-            print(response.text)
+
+            response = requests.request("POST", self.siliconflow_url, json=payload, headers=headers, stream=True)
             return response
 
         if not stream:

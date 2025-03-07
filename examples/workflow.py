@@ -9,7 +9,7 @@ from collections.abc import AsyncGenerator
 abs_path = os.path.abspath(__file__)
 cur_path = abs_path.split("examples")[0] + "src"
 sys.path.append(rf"{cur_path}")
-sys.path.append("/Users/liubaoyang/Documents/YoungL/Personal_project/tools_set")
+sys.path.append("/Users/liubaoyang/Documents/YoungL/project/Personal_project/tools_set")
 import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -22,7 +22,7 @@ from Orca import OrcaExecutor
 from Orca import all_tools
 from tools import other_tools
 
-orca_prompt_path = "/Users/liubaoyang/Documents/YoungL/Orca/examples/doc2chart/extract_tables_images_from_pdf.orca"
+orca_prompt_path = "/Users/liubaoyang/Documents/YoungL/project/Orca/examples/orca_prompts/prompt.orca"
 
 orca_prompt_path = abs_path[:abs_path.index("example")] + orca_prompt_path[orca_prompt_path.index("examples"):]
 
@@ -97,7 +97,31 @@ async def main():
     async for res, execute_state in response:
         # print(res['variables_pool'].get_variables('final_result'))
         if execute_state == "processed":
-            print(res['variables_pool'].get_variables('final_result'), end="", flush=True)
+            result = res['variables_pool'].get_variables('final_result')
+            # 处理新的返回格式
+            if isinstance(result, dict):
+                if "content" in result and "reasoning_content" in result:
+                    # 确保result['content']是字符串
+                    content = result['content']
+                    if not isinstance(content, str):
+                        content = str(content)
+                    print(content + result['reasoning_content'], end="", flush=True)
+                elif "answer" in result and "think" in result:
+                    # 确保result['answer']是字符串
+                    answer = result['answer']
+                    if not isinstance(answer, str):
+                        answer = str(answer)
+                    print(answer + result['think'], end="", flush=True)
+                else:
+                    # 确保result是字符串
+                    if not isinstance(result, str):
+                        result = str(result)
+                    print(result, end="", flush=True)
+            else:
+                # 确保result是字符串
+                if not isinstance(result, str):
+                    result = str(result)
+                print(result, end="", flush=True)
         else:
             pass
 
@@ -113,8 +137,50 @@ async def main():
             "prompt_segments": res['prompt_segments'],
         }
         executor.init_executor(init_parmas=new_init_params)
-        res, execute_state = await executor.execute(content, breakpoint_infos=new_init_params, mode=mode, stream=True)
-    
+        response = await executor.execute(prompt=content, stream=True)
+        cur_response = ""
+        async for res, execute_state in response:
+            # print(res['variables_pool'].get_variables('final_result'))
+            if execute_state == "processed":
+                
+                result = res['variables_pool'].get_variables('final_result')
+                if isinstance(result, dict) and "content" in result and "reasoning_content" in result:
+                    # 确保result['content']是字符串
+                    content = result['content']
+                    if not isinstance(content, str):
+                        content = str(content)
+                    cur_response += content
+                    if len(content) > 500:
+                        print("\n-----------------------------------------search----------------------------------------")
+                        print(content[:480].replace("\n", "") +"   ……   " + content[-20:].replace("\n", "") + result['reasoning_content'], end="", flush=True)
+                        print("\n-----------------------------------------finish search----------------------------------------\n\n\n")
+                    else:
+                        print(content + result['reasoning_content'], end="", flush=True)
+                else:
+                    # 处理新的返回格式
+                    if isinstance(result, dict) and "answer" in result and "think" in result:
+                        # 确保result['answer']是字符串
+                        answer = result['answer']
+                        if not isinstance(answer, str):
+                            answer = str(answer)
+                        cur_response += answer
+                        if len(answer) > 500:
+                            print("\n-----------------------------------------search----------------------------------------")
+                            print(answer[:480].replace("\n", "") +"   ……   " + answer[-20:].replace("\n", "") + result['think'], end="", flush=True)
+                            print("\n-----------------------------------------finish search----------------------------------------\n\n\n")
+                        else:
+                            print(answer + result['think'], end="", flush=True)
+                    else:
+                        # 确保result是字符串
+                        if not isinstance(result, str):
+                            result = str(result)
+                        cur_response += result
+                        if len(result) > 500:
+                            print(result[:480] + "……" + result[-20:], end="", flush=True)
+                        else:
+                            print(result, end="", flush=True)
+            else:
+                pass
 if __name__ == '__main__':
     import asyncio
     asyncio.run(main())

@@ -23,7 +23,7 @@ from Orca import OrcaExecutor
 from Orca import all_tools
 from tools import other_tools
 
-orca_prompt_path = "/Users/liubaoyang/Documents/YoungL/project/Orca/examples/deep_research/deep_research.orca"
+orca_prompt_path = "/Users/liubaoyang/Documents/YoungL/project/Orca/examples/orca_prompts/define_agent.orca"
 
 orca_prompt_path = abs_path[:abs_path.index("example")] + orca_prompt_path[orca_prompt_path.index("examples"):]
 
@@ -40,7 +40,7 @@ def load_api_key(platform):
 
 default_api_key = load_api_key("siliconflow")
 default_base_url = "https://api.siliconflow.cn/v1/chat/completions"
-default_llm_model_name = "Qwen/Qwen2.5-72B-Instruct-128K"
+default_llm_model_name = "deepseek-ai/DeepSeek-R1-Distill-Qwen-7B"
 
 deepseek_api_key = load_api_key("deepseek")
 deepseek_model_base_url = "https://api.deepseek.com"
@@ -81,7 +81,7 @@ variables["query"] = []
 
 async def main():
     # query = input('请输入问题：')
-    query = "去年黄金涨了很多，今年会是什么趋势？"
+    query = "机械专业怎么养"
     while len(query) != 0:
         variables["query"].append({"role":"user", "content":query})
         init_params = {
@@ -100,8 +100,6 @@ async def main():
         
         executor = OrcaExecutor()
         executor.init_executor(init_params=init_params)
-        # 使用全局变量content
-        global content
         response = await executor.execute(prompt=content, stream=True)
         cur_response = ""
         async for res, execute_state in response:
@@ -115,12 +113,7 @@ async def main():
                     if not isinstance(content, str):
                         content = str(content)
                     cur_response += content
-                    if len(content) > 500:
-                        print("\n-----------------------------------------search----------------------------------------")
-                        print(content[:480].replace("\n", "") +"   ……   " + content[-20:].replace("\n", "") + result['reasoning_content'], end="", flush=True)
-                        print("\n-----------------------------------------finish search----------------------------------------\n\n\n")
-                    else:
-                        print(content + result['reasoning_content'], end="", flush=True)
+                    print(content + result['reasoning_content'], end="", flush=True)
                 else:
                     # 处理新的返回格式
                     if isinstance(result, dict) and "answer" in result and "think" in result:
@@ -129,21 +122,13 @@ async def main():
                         if not isinstance(answer, str):
                             answer = str(answer)
                         cur_response += answer
-                        if len(answer) > 500:
-                            print("\n-----------------------------------------search----------------------------------------")
-                            print(answer[:480].replace("\n", "") +"   ……   " + answer[-20:].replace("\n", "") + result['think'], end="", flush=True)
-                            print("\n-----------------------------------------finish search----------------------------------------\n\n\n")
-                        else:
-                            print(answer + result['think'], end="", flush=True)
+                        print(answer + result['think'], end="", flush=True)
                     else:
                         # 确保result是字符串
                         if not isinstance(result, str):
                             result = str(result)
                         cur_response += result
-                        if len(result) > 500:
-                            print(result[:480] + "……" + result[-20:], end="", flush=True)
-                        else:
-                            print(result, end="", flush=True)
+                        print(result, end="", flush=True)
             else:
                 pass
         

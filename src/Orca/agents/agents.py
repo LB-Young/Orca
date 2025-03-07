@@ -1,122 +1,102 @@
 import json
+import copy
 from Orca.segment_executor import *
 from Orca.utils.variable_replace import replace_variable
-
+from Orca.segment_executor.llm_client import LLMClient
 
 
 class Agent:
-    def __init__(self, roles=None, tools=None, system_prompt=None):
+    def __init__(self, tools=None, system_prompt="", all_states=None):
         self.role_format = """
-# Role: 团队负责人
-
-# Profile:
-- version: 1.4
-- language: 中文
-- description: 你是一个团队负责人，但是你的团队只有你一个人，所以你要分饰多个角色解决对应的问题，但是你有很多的工具可以使用。
-
 ## Goals：
-- 你需要分析用户的问题，决定由负责人的身份回答用户问题还是以团队其他人的角色来回答用户问题，Team Roles中的角色就是你可以扮演的团队的角色样例,除了示例角色之外你可以扮演任何其他角色。你还可以使用工具来处理问题，tools中的工具就是你可以使用的全部工具。
-
-## Team Roles：
-{roles}
+- 你需要分析用户的问题，决定自己回答问题还是使用工具来处理，tools中列出的工具就是你可以使用的全部工具。
 
 ## tools:
 {tools}
 
-## Constraints：
-- 你必须清晰的理解问题和各个角色擅长的领域，并且熟练使用工具。
-- 你需要将问题以最合适的角色回答，如果没有合适的角色则直接以自己的角色回答。
-- 你必须使用“=>@xxx:”的格式来触发对应的角色。
-- 你需要将问题拆分成详细的多个步骤，并且使用不同的角色回答。
+## tools use Constraints：
+- 你必须清晰的理解问题并且熟练使用工具。
 - 当需要调用工具的时候，你需要使用"=>#tool_name: {key:value}"的格式来调用工具,其中参数为严格的json格式，例如"=>#send_email: {subject: 'Hello', content: 'This is a test email'}"。
 - 调用工具的时候，工具后列出的参数都是必须参数，所有参数都需要被赋值不能有遗漏。
-
-## Notes
-- 注意：优先使用tool回答问题，只有在tool无法回答问题的时候才使用role。
-
-## Workflows：
-1、分析问题
-    1.1、判断问题是否可以通过调用tool解决；如果可以，则调用tool解决（步骤2）。
-    1.2、判断问题是否可以通过调用Roles中的角色解决；如果可以，则调用role解决（步骤3）。
-    1.3、如果没有与问题相关的tool和role、则以自己的角色回答（步骤3）。
-2、调用tool
-    2.1、如果需要调用工具来处理，需要使用以下符号进行触发：“=>#tool_name: {key:value}”，例如“=>#send_email: {subject: 'Hello', content: 'This is a test email'}”。
-    2.2、每一次触发了不同的tool之后，你需要停止作答，等待用户调用对应的tool处理之后，将tool的结果重新组织语言后再继续作答，新的答案要接着“=>#tool_name”前面的最后一个字符继续生成结果，要保持结果通顺。
-3、调用role
-    3.1、如果触发其他角色解答，使用以下符号进行触发：“=>@xxx:”，例如“=>@expert:”表示以专家角色开始发言,“=>@orca_agent:”表示不需要调用团队成员而是以自己的角色回答。
-    3.2、每一次当你触发了不同的角色之后，你需要切换到对应的角色进行回答。如“=>@law_expert:法律上的解释是……”
+- 每一次触发了tool调用之后，你需要暂停作答，并等待工具调用的结果。
 
 {system_prompt}
-{history_message}
-当前的问题为：{prompt}\n。
-"""
-        if system_prompt is None:
-            self.role_format = self.role_format.replace(r"{system_prompt}", "")
-        else:
-            self.role_format = self.role_format.replace(r"{system_prompt}", f"## JOB Description:\n {system_prompt}\n")
-        self.roles_info = ""
-        for key, value in roles.items():
-            self.roles_info += f"@{key}: {value}\n"
-        if len(self.roles_info) == 0:
-            self.roles_info = "没有其他角色"
+"""     
+        if len(tools) == 0:
+            self.role_format = """{system_prompt}"""
+
         self.tools = {}
         self.tool_describe = []
         for key, value in tools.items():
             self.tools[key] = value["object"]
             self.tool_describe.append(f"{key}: {value['describe']}\n")
-        if len(self.tool_describe) == 0:
-            self.tool_describe = "没有其他工具"
-        self.role = self.role_format.replace(r"{roles}", self.roles_info).replace(r"{tools}", "".join(self.tool_describe))
+        self.role = self.role_format.replace(r"{tools}", "".join(self.tool_describe))
 
-        self.llm_call_executor = LLMCallExecutor()
+        if len(system_prompt) == 0:
+            self.role = self.role.replace(r"{system_prompt}", "")
+        else:
+            self.role = self.role.replace(r"{system_prompt}", f"## User Demands:\n {system_prompt}\n")
+
+        self.system_messages = [{"role":"system", "content":self.role}]  
+        config_dict = all_states['config'].get_configs()
+        self.llm_client = LLMClient(config_dict=config_dict)
         self.tool_call_executor = ToolCallExecutor()
 
-    async def execute(self, prompt, all_states=None, stream=False):
-        if isinstance(prompt, str):
-            try:
-                tmp_messages = eval(prompt)
-                if isinstance(tmp_messages, str):
-                    messages = [{"role":"user", "content":tmp_messages}]
-                else:
-                    messages = tmp_messages
-            except:
-                messages = [{"role":"user", "content":prompt}]
-        else:
-            messages = prompt
-        print(messages)
-        if len(messages) == 1:
-            self.role = self.role.replace(r"{history_message}", "")
-            query = messages[-1]["content"]
-        else:
-            history_messages = "## 历史对话信息为：\n" + str(messages[:-1]) + "\n"
-            self.role = self.role.replace(r"{history_message}", history_messages)
-            query = messages[-1]["content"]
-        query = await replace_variable(prompt=query, all_states=all_states)
-        cur_prompt = self.role.replace("{prompt}", query).strip()
-        result = await self.llm_call_executor.execute(content=cur_prompt, all_states=all_states, stream=stream, variable_replaced=True)
-        result = result['execute_result']['result']
+    async def execute(self, messages, all_states=None, stream=False):
+
+        full_messages = self.system_messages + messages
+        # print(full_messages)
+
+        result = await self.llm_client.generate_answer(messages=full_messages, stream=stream)
+
         all_answer = ""
-        tool_messages = ""
+        all_think = ""
         tool_Flag = False
-        for chunk in result:
-            all_answer += chunk.choices[0].delta.content
+        # for chunk in result:
+        #     all_think += chunk.choices[0].delta.reasoning_content
+        #     all_answer += chunk.choices[0].delta.content
+        #     if tool_Flag:
+        #         continue
+        #     if ":" in chunk.choices[0].delta.content and "=>#" in all_answer:
+        #         tool_Flag = True
+        #         yield {"content": ": ", "reasoning_content": ""}
+        #         continue
+        #     yield {"content": chunk.choices[0].delta.content, "reasoning_content": chunk.choices[0].delta.reasoning_content}
+
+        for chunk in result.iter_lines():
+            try:
+                tmp_chunk = json.loads(chunk.decode('utf-8').replace("data: ", ""), strict=True)
+            except:
+                continue
+            # print("--->>", tmp_chunk['choices'][0]['delta'])
+            if "choices" not in tmp_chunk:
+                continue
+            content = tmp_chunk['choices'][0]['delta']['content']
+            reasoning_content = tmp_chunk['choices'][0]['delta']['reasoning_content']
+            if content is None:
+                content = ""
+            if reasoning_content is None:
+                reasoning_content = ""
+            all_think += reasoning_content
+            all_answer += content
             if tool_Flag:
-                tool_messages += chunk.choices[0].delta.content
                 continue
-            if ":" in chunk.choices[0].delta.content and "=>#" in all_answer:
+            if ":" in content and "=>#" in all_answer:
                 tool_Flag = True
-                tool_messages += chunk.choices[0].delta.content
-                yield ": "
+                yield {"content": ": ", "reasoning_content": ""}
                 continue
-            yield chunk.choices[0].delta.content
+            # print("---->>", {"content": content, "reasoning_content": reasoning_content})
+            yield {"content": content, "reasoning_content": reasoning_content}
+
         if tool_Flag:
             tool_messages = all_answer.split("=>#")[-1]
             result = await self.tool_run(tool_message=tool_messages, all_states=all_states)
-            for item in str(result)+"\n":
-                yield item
-            new_query = query + "\n" + "已经执行内容:" + all_answer + "\n" + "工具执行结果:" + result
-            new_messages = messages[:-1] + [{"role": "user", "message": new_query}]
-            async for item in self.execute(prompt=new_messages, all_states=all_states, stream=stream):
+            yield {"content": str(result)+"\n", "reasoning_content": ""}
+            # for item in str(result)+"\n":
+            #     yield {"content": item, "reasoning_content": ""}
+
+            new_messages = messages + [{"role": "assistant", "content": all_answer + "工具结果为：```\n" + result + "\n```"}, {"role":"user", "content":"请你接着上一次的结果继续回答。"}]
+            async for item in self.execute(messages=new_messages, all_states=all_states, stream=stream):
                 yield item
 
     async def re_params_extract(self, params_content):

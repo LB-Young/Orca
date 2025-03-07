@@ -1,6 +1,6 @@
 import copy
 import openai
-from collections.abc import AsyncGenerator
+from collections.abc import AsyncGenerator, Generator
 import logging
 logger = logging.getLogger(__name__)
 from Orca.orca_language_analysis import PromptAnalysis
@@ -162,18 +162,41 @@ class Executor:
         # logger.debug("当前步骤结果:", str(result))
 
         processed_result = ""
+        line_type = "str"
         if isinstance(result, AsyncGenerator):
             async for line in result:
-                processed_result += line
+                if isinstance(line, str):
+                    processed_result += line
+                elif isinstance(line, dict):
+                    processed_result += line['reasoning_content'] + line['content']
+                    line_type = "json"
                 if res_variable_name is not None:
                     if add_type == "->":
                         all_states['variables_pool'].add_variable(res_variable_name,processed_result,variable_type)
                     elif add_type == "->>":
                         all_states['variables_pool'].add_variable_value(res_variable_name,processed_result,variable_type)
-                    all_states['variables_pool'].add_variable("final_result", line, "str")
+                    all_states['variables_pool'].add_variable("final_result", line, line_type)
                 yield all_states, execute_state
             all_states['variables_pool'].add_variable("final_result", "\n\n", "str")
             yield all_states, execute_state
+            
+        elif isinstance(result, Generator):
+            for line in result:
+                if isinstance(line, str):
+                    processed_result += line
+                elif isinstance(line, dict):
+                    processed_result += line['reasoning_content'] + line['content']
+                    line_type = "json"
+                if res_variable_name is not None:
+                    if add_type == "->":
+                        all_states['variables_pool'].add_variable(res_variable_name,processed_result,variable_type)
+                    elif add_type == "->>":
+                        all_states['variables_pool'].add_variable_value(res_variable_name,processed_result,variable_type)
+                    all_states['variables_pool'].add_variable("final_result", line, line_type)
+                yield all_states, execute_state
+            all_states['variables_pool'].add_variable("final_result", "\n\n", "str")
+            yield all_states, execute_state
+
         else:
             if isinstance(result, openai.Stream):
                 for line in result:

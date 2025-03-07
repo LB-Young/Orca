@@ -14,9 +14,12 @@ class VariablesPool:
         else:
             if variable_type == "int":
                 variable_value = int(variable_value)
-            elif variable_type == "json":
+            elif variable_type == "json" or variable_type == dict:
                 try:
-                    variable_value = json.loads(variable_value)
+                    if isinstance(variable_value, dict):
+                        pass
+                    else:
+                        variable_value = json.loads(variable_value)
                 except:
                     raise Exception(f"Invalid JSON format, variable: {variable_type}")
             elif variable_type == "list":
