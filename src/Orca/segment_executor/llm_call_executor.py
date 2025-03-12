@@ -14,20 +14,25 @@ class LLMCallExecutor:
     def __init__(self):
         pass
         
-    async def execute(self, content, all_states=None, stream=False, variable_replaced=False):
+    async def execute(self, messages, all_states=None, stream=False, variable_replaced=False):
         self.all_states = all_states
         if all_states is None:
             raise Exception("All_states is None, and not init LLMCallExecutor")
         else:
             self.config_dict = all_states['config'].get_configs()
             self.llm_client = LLMClient(config_dict=self.config_dict)
-        if not variable_replaced:
-            content = await replace_variable(content, all_states)
-        type = await self.judge_prompt_type(content)
+        if isinstance(messages, str):
+            messages = await replace_variable(messages, all_states)
+            messages = [{"role":"user", "content":messages}]
+        type = "prompt"
+        for item in messages[::-1]:
+            if item['role'] == "user":
+                type = await self.judge_prompt_type(item['content'])
+                break
         if type == "prompt":
-            response = await self.llm_client.generate_answer(prompt=content, stream=stream)
+            response = await self.llm_client.generate_answer(messages=messages, stream=stream)
         elif type == "code":
-            response = await self.llm_client.generate_code(prompt=content, stream=stream)
+            response = await self.llm_client.generate_code(messages=messages, stream=stream)
         result = {
             "execute_result": {
                 "result":response

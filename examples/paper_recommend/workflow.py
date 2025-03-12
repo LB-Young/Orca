@@ -5,18 +5,28 @@
 # tips       :
 import os
 import sys
-import json
-sys.path.append("/Users/liubaoyang/Documents/YoungL/project/Orca/src")
-sys.path.append("/Users/liubaoyang/Documents/YoungL/project/Personal_project/tools_set")
+from collections.abc import AsyncGenerator
+abs_path = os.path.abspath(__file__)
+cur_path = abs_path.split("examples")[0] + "src"
+sys.path.append(rf"{cur_path}")
 import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+logging.getLogger("httpx").setLevel(logging.ERROR)
 
+import json
+import openai
 from dotenv import load_dotenv
 from Orca import OrcaExecutor
 from Orca import all_tools
+from tools import other_tools
+
+orca_prompt_path = "/Users/liubaoyang/Documents/YoungL/project/Orca/examples/paper_recommend/paper_recommend_new.orca"
+
+orca_prompt_path = abs_path[:abs_path.index("example")] + orca_prompt_path[orca_prompt_path.index("examples"):]
+
 def load_api_key(platform):
-    with open("/Users/liubaoyang/Documents/windows/api_key.json", "r", encoding="utf-8") as f:
+    with open(r"/Users/liubaoyang/Documents/windows/api_key.json", "r", encoding="utf-8") as f:
         api_dict = json.load(f)
     # print(api_dict)
     return api_dict.get(platform, None)
@@ -24,7 +34,7 @@ def load_api_key(platform):
 load_dotenv()
 default_api_key = load_api_key("aliyun")
 default_base_url = "https://dashscope.aliyuncs.com/compatible-mode/v1"
-default_llm_model_name = "qwen-max-latest"
+default_llm_model_name = "qwen-max"
 deepseek_api_key = load_api_key("deepseek")
 deepseek_model_base_url = "https://api.deepseek.com"
 deepseek_llm_model_name = "deepseek-chat"
@@ -48,10 +58,10 @@ config = {
     "together_llm_model_name": together_llm_model_name
 }
 
-orca_prompt_path = "/Users/liubaoyang/Documents/YoungL/project/Orca/examples/paper_recommend/paper_recommend_new_full.orca"  # 输入workflow prompt路径
 with open(orca_prompt_path, "r", encoding="utf-8") as f:
     orca_file = f.read()
 
+all_tools.update(other_tools)
 
 content = orca_file.split("orca:", 1)[-1].strip()
 variables = json.loads(orca_file.split("orca:", 1)[0].strip().split("variabes:", 1)[-1].strip())
@@ -61,12 +71,8 @@ if "false" in orca_file.split("orca:", 1)[0].split("variabes:", 1)[0] or "False"
 else:
     agent_flag = True
 
-from tools import other_tools
-all_tools.update(other_tools)
-
 init_params = {
     "configs": config,
-    
     "memories": [],
     "debug_infos": [],
     "variables": variables,
@@ -78,7 +84,9 @@ init_params = {
             "law_expert": "法律专家",
             "medical_expert": "医疗专家",
             "computer_expert": "计算机专家",
-                }
+                },
+        "tools":"default",
+        "agents":"default",
             }
         }
 async def main():

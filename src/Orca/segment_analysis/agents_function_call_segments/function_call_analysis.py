@@ -22,9 +22,9 @@ class FunctionCallAnalysis:
         if raw_params_content[0] == "(" and raw_params_content[-1] == ")" and "=" in raw_params_content:
             raw_params_content = '{' + raw_params_content[1:-1] + '}'
         if module_name in all_agents.keys():
-            params_content = await replace_variable(params_content, all_states)
             if params_content[0] == "(" and params_content[-1] == ")":
                 params_content = params_content[1:-1]
+            params_content = await replace_variable(params_content, all_states)
             # agent_response = await all_agents[module_name].execute(params_content)
             result = {
                     "analysis_result":{

@@ -1,10 +1,16 @@
 aiofiles
+arxiv
 beautifulsoup4
+duckduckgo_search
 google-search-results
 groq
+graphviz
 lxml
 markdown2
+onnxruntime
 openai
+opencv-python
+pdf2imag
 PyPDF2
 redis
 selenium

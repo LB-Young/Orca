@@ -1,0 +1,8 @@
+default_agent:False
+variabes:
+{}
+orca:
+
+
+@agent_init(system_prompt="你需要分析用户问题，首先使用了jina搜索工具,搜索相关的内容，然后使用浏览器读取搜索结果中的链接内容。", tools=["browser_use", "jina_search"])->new_agent
+@new_agent($query) -> answer

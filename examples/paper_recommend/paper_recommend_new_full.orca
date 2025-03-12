@@ -8,7 +8,7 @@ variabes:
 }
 orca:
 
-@paper_with_code_search("搜索10篇论文") -> papers(list)
+@paper_with_code_search_full("搜索20篇论文") -> papers(list)
 
 FOR $paper in $papers:
 对“$paper”中的内容用中文进行总结。

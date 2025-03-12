@@ -9,7 +9,6 @@ from collections.abc import AsyncGenerator
 abs_path = os.path.abspath(__file__)
 cur_path = abs_path.split("examples")[0] + "src"
 sys.path.append(rf"{cur_path}")
-sys.path.append("/Users/liubaoyang/Documents/YoungL/Personal_project/tools_set")
 import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -22,7 +21,7 @@ from Orca import OrcaExecutor
 from Orca import all_tools
 from tools import other_tools
 
-orca_prompt_path = "/Users/liubaoyang/Documents/YoungL/Orca/examples/doc2chart/extract_tables_images_from_pdf.orca"
+orca_prompt_path = "/Users/liubaoyang/Documents/YoungL/project/Orca/examples/paper_recommend/paper_recommend_new_full.orca"
 
 orca_prompt_path = abs_path[:abs_path.index("example")] + orca_prompt_path[orca_prompt_path.index("examples"):]
 

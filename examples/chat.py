@@ -9,7 +9,6 @@ from collections.abc import AsyncGenerator
 abs_path = os.path.abspath(__file__)
 cur_path = abs_path.split("examples")[0] + "/src"
 sys.path.append(rf"{cur_path}")
-sys.path.append("/Users/liubaoyang/Documents/YoungL/Personal_project/tools_set")
 
 import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -23,7 +22,7 @@ from Orca import OrcaExecutor
 from Orca import all_tools
 from tools import other_tools
 
-orca_prompt_path = "/Users/liubaoyang/Documents/YoungL/Orca/examples/multi_roles/multi_roles.orca"
+orca_prompt_path = "/Users/liubaoyang/Documents/YoungL/project/Orca/examples/orca_manus/orca_manus_1.orca"
 
 orca_prompt_path = abs_path[:abs_path.index("example")] + orca_prompt_path[orca_prompt_path.index("examples"):]
 
@@ -34,9 +33,9 @@ def load_api_key(platform):
     return api_dict.get(platform, None)
 
 # load_dotenv()
-default_api_key = load_api_key("deepseek")
-default_base_url = "https://api.deepseek.com"
-default_llm_model_name = "deepseek-chat"
+default_api_key = load_api_key("aliyun")
+default_base_url = "https://dashscope.aliyuncs.com/compatible-mode/v1"
+default_llm_model_name = "deepseek-v3"
 
 # default_api_key = load_api_key("siliconflow")
 # default_base_url = "https://api.siliconflow.cn/v1/chat/completions"
@@ -81,7 +80,7 @@ variables["query"] = []
 
 async def main():
     query = input('请输入问题：')
-    # query = "介绍一下p-tuning和prefix-tuning"
+    # query = "deepmind最近在研究什么"
     while len(query) != 0:
         variables["query"].append({"role":"user", "content":query})
         init_params = {
@@ -99,14 +98,17 @@ async def main():
                 }
         
         executor = OrcaExecutor()
-        executor.init_executor(init_parmas=init_params)
+        executor.init_executor(init_params=init_params)
         response = await executor.execute(prompt=content, stream=True)
         cur_response = ""
         async for res, execute_state in response:
             # print(res['variables_pool'].get_variables('final_result'))
             if execute_state == "processed":
                 cur_response += res['variables_pool'].get_variables('final_result')
-                print(res['variables_pool'].get_variables('final_result'), end="", flush=True)
+                if isinstance(res['variables_pool'].get_variables('final_result'), str) and len(res['variables_pool'].get_variables('final_result'))>300:
+                    print(res['variables_pool'].get_variables('final_result')[:300] + "……", end="", flush=True)
+                else:
+                    print(res['variables_pool'].get_variables('final_result'), end="", flush=True)
             else:
                 pass
         

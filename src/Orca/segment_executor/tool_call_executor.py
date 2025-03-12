@@ -10,7 +10,11 @@ class ToolCallExecutor:
         if 'condition_judge' in str(function_object) or "code_execute" in str(function_object):
             function_input['all_states'] = all_states
         if asyncio.iscoroutinefunction(function_object):
-            tool_result = await function_object(**function_input)
+            try:
+                tool_result = await function_object(**function_input)
+            except:
+                breakpoint()
+                pass
         else:
             tool_result = function_object(**function_input)
         result = {

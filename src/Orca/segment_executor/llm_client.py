@@ -131,19 +131,14 @@ class LLMClient:
         # print("prompt:", prompt)
         # print("self.client:", self.client)
         # print("self.llm_model_name:", self.llm_model_name)
-        if len(prompt) > 60000:
-            prompt = prompt[-60000]
+        if len(messages[-1]['content']) > 30000:
+            messages[-1]['content'] = messages[-1]['content'][-30000]
 
         if self.default_type == "siliconflow":
             import requests
             payload = {
                 "model": self.siliconflow_model_name,
-                "messages": [
-                    {
-                        "role": "user",
-                        "content": prompt
-                    }
-                ],
+                "messages": messages,
                 "stream": True,
                 "max_tokens": 512,
                 "stop": ["null"],
@@ -158,7 +153,6 @@ class LLMClient:
                 "Authorization": f"Bearer {self.siliconflow_key}",
                 "Content-Type": "application/json"
             }
-            breakpoint()
             response = requests.request("POST", self.siliconflow_url, json=payload, headers=headers)
             print(response.text)
             return response
@@ -168,10 +162,7 @@ class LLMClient:
                 if tools is None:
                     response = self.client.chat.completions.create(
                         model=self.llm_model_name,
-                        messages=[
-                            {"role": "system", "content": "You are a helpful assistant"},
-                            {"role": "user", "content": prompt},
-                        ],
+                        messages=messages,
                         stream=False,
                     )
                     return response.choices[0].message.content
@@ -188,20 +179,14 @@ class LLMClient:
                 if tools is None:
                     response = self.client.chat.completions.create(
                         model=self.llm_model_name,
-                        messages=[
-                            {"role": "system", "content": "You are a helpful assistant"},
-                            {"role": "user", "content": prompt},
-                        ],
+                        messages=messages,
                         stream=True,
                     )
                     return response
                 else:
                     response = self.client.chat.completions.create(
                         model=self.llm_model_name,
-                        messages=[
-                            {"role": "system", "content": "You are a helpful assistant"},
-                            {"role": "user", "content": prompt},
-                        ],
+                        messages=messages,
                         stream=False,
                     )
                     return response.choices[0].message.content

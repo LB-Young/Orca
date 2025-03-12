@@ -13,7 +13,7 @@ class AgentInitAnalysis:
     async def analysis(self, prompt_content, all_states=None):
         prompt_content = await replace_variable(prompt_content, all_states)
         roles, tools, describe_content, system_prompt = await self.get_roles_tools(prompt_content, all_states)
-        cur_agent = Agent(roles, tools, system_prompt)
+        cur_agent = Agent(tools, system_prompt)
         agent_msg = {
             "object":cur_agent,
             "describe":describe_content

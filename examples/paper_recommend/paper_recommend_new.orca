@@ -6,7 +6,7 @@ variabes:
 }
 orca:
 
-@paper_with_code_search("搜索30篇论文") -> papers(list)
+@paper_with_code_search_full("搜索10篇论文") -> papers(list)
 
 FOR $paper in $papers:
 对“$paper”中的内容用中文进行总结。
@@ -38,8 +38,6 @@ END
 
 @list_to_multiline_string("list_data"=$paper_summaries) -> prcessed_papers
 
-
-@save2local("contents"=$prcessed_papers, "output_path"=$output_file) -> caption_path
 
 @send_email("content"=$prcessed_papers, "subject"="daily paper recommend", "to"=$email_list) -> email
 
