@@ -12,11 +12,14 @@ class AgentInitAnalysis:
 
     async def analysis(self, prompt_content, all_states=None):
         prompt_content = await replace_variable(prompt_content, all_states)
-        roles, tools, describe_content, system_prompt = await self.get_roles_tools(prompt_content, all_states)
+        params = await self.get_roles_tools(prompt_content, all_states)
+        system_prompt = params["system_prompt"]
+        tools = params["tools"]
+        model = params["model"]
         cur_agent = Agent(tools, system_prompt)
         agent_msg = {
             "object":cur_agent,
-            "describe":describe_content
+            "describe":system_prompt
         }
         result = {
             "analysis_result":{
@@ -27,12 +30,28 @@ class AgentInitAnalysis:
         return result
 
     async def get_roles_tools(self, prompt_content, all_states):
+        contain_variables = ["tools", "system_prompt", "model"]
+
+        if len(prompt_content) == 0:
+            res = {
+                "tools":{},
+                "system_prompt":"",
+                "model":""
+            }
+            return res
+
         prompt_content = prompt_content.strip().replace("@agent_init", "")
         if prompt_content.startswith("(") and prompt_content.endswith(")"):
             prompt_content = prompt_content[1:-1].strip()
         else:
             raise Exception(f"agent init failed! {prompt_content} is invalid")
-        pattern = r'((roles)|(tools)|(describe)|(prompt)) *='
+    
+        select_content = ""
+        for item in contain_variables:
+            select_content += f"({item})|"
+        select_content = select_content[:-1]
+
+        pattern = rf'({select_content}) *='
         match = re.search(pattern, prompt_content)
         match_res = {}
         past_start = 0
@@ -52,54 +71,58 @@ class AgentInitAnalysis:
         all_end = [value[1] for key, value in match_res.items()]
         all_key = []
         for key, value in match_res.items():
-            if "roles" in key:
-                all_key.append("roles")
-            elif "tools" in key:
-                all_key.append("tools")
-            elif "describe" in key:
-                all_key.append("describe")
-            elif "prompt" in key:
-                all_key.append("prompt")
-        all_value = [prompt_content[all_end[i]:all_start[i + 1]].strip() for i in range(len(all_end))]
+            for item in contain_variables:
+                if item in key:
+                    all_key.append(item)
+                else:
+                    pass
 
-        roles_content = None
-        tools_content = None
-        describe_content = None
-        prompt_content = None
+        tmp_all_value = [prompt_content[all_end[i]:all_start[i + 1]].strip() for i in range(len(all_end))]
+        all_value = []
+        for item in tmp_all_value:
+            item = item.strip()
+            if len(item) == 0:
+                continue
+            else:
+                if item[-1] == ",":
+                    item = item[:-1]
+            if item[0] == '"':
+                item = item[1:]
+            if item[-1] == '"':
+                item = item[:-1]
+            all_value.append(item)
+
+        res = {
+            "tools":"",
+            "system_prompt":"",
+            "model":""
+        }
 
         for cur_key, cur_value in zip(all_key, all_value):
-            if cur_value.strip()[-1] == ",":
-                cur_value = cur_value.strip()[:-1]
-            if "roles" in cur_key:
-                roles_content = cur_value
-            elif "tools" in cur_key:
-                tools_content = cur_value
-            elif "describe" in cur_key:
-                describe_content = cur_value
-            elif "prompt" in cur_key:
-                prompt_content = cur_value
-        try:
-            if roles_content is not None:
-                roles = json.loads(roles_content)
-            else:
-                roles = {}
-            
-            if "tools" not in all_key:
-                used_tools = {}
-                return roles, used_tools, describe_content, prompt_content
-            else:
-                if "default" not in tools_content or len(tools_content)>3:
-                    tools = eval(tools_content)
-                    if isinstance(tools, dict):
-                        return roles, tools, describe_content, prompt_content
-                    elif isinstance(tools, list):
-                        used_tools = {}
-                        for key, value in all_states['tools_agents_pool'].get_tools().items():
-                            if key in tools:
-                                used_tools[key] = value
-                        return roles, used_tools, describe_content, prompt_content
+            if len(cur_value.strip()) == 0:
+                continue
+            for contain_variable in contain_variables:
+                if contain_variable in cur_key:
+                    res[contain_variable] = cur_value
                 else:
-                    tools = all_states['tools_agents_pool'].get_tools()
-                    return roles, tools, describe_content, prompt_content
-        except:
-            raise Exception(f"agent init failed! roles or tools is not json format! roles:{roles_content}, tools:{tools_content}")
+                    pass
+
+        if len(res["tools"].strip()) == 0:
+            res["tools"] = {}
+        else:
+            if "default" not in res["tools"]:
+                tools = eval(res["tools"])
+                if isinstance(tools, dict):
+                    res["tools"] = tools
+                elif isinstance(tools, list):
+                    used_tools = {}
+                    for key, value in all_states['tools_agents_pool'].get_tools().items():
+                        if key in tools:
+                            used_tools[key] = value
+                    res["tools"] = used_tools
+                else:
+                    raise Exception(f"agent init failed! tools is not json format! tools:{res['tools']}")
+            else:
+                res["tools"] = all_states['tools_agents_pool'].get_tools()
+
+        return res

@@ -4,5 +4,5 @@ variabes:
 orca:
 
 
-@agent_init(roles = {"computer_expert":"计算机专家", "mechanical_expert":"机械专家","history_expert":"历史专家","math_expert":"数学专家","material_expert":"材料专家"}, tools=["code_execute"],  describe="一个专家团队")->new_agent
+@agent_init(system_prompt="你们目前在进行一次采访，请你同时充当主持人host和被采访的专家expert，针对用户的问题，通过采访对话的形式，解答用户的问题。")->new_agent
 @new_agent($query) -> result

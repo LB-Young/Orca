@@ -18,14 +18,14 @@ class Agent:
             self.tools[key] = value["object"]
             self.tool_describe.append(f"{key}: {value['describe']}\n")
         if len(self.tool_describe) == 0:
-            pass
+            self.prompt_format = ""
         else:
             self.tool_describe = "".join(self.tool_describe)
             self.prompt_format = self.prompt_format.replace(r"{tools}", "TOOLS 使用说明\n\n\nTOOLS LIST:\n" + self.tool_describe + "\n\n")
 
-        if system_prompt is None:
+        if self.prompt_format != "":
             self.system_prompt = [{"role":"user", "content":self.prompt_format}, {"role":"assistant", "content":"好的，我会严格遵循要求，再触发一次工具调用之后立即停止作答，等待工具结果返回后继续。"}]
-        else:
+        if system_prompt is not None:
             self.system_prompt = [{"role":"user", "content":self.prompt_format}, {"role":"assistant", "content":"好的，我会严格遵循要求，再触发一次工具调用之后立即停止作答，等待工具结果返回后继续。"}, {"role":"user", "content":system_prompt}]
 
         self.llm_call_executor = LLMCallExecutor()
@@ -33,7 +33,7 @@ class Agent:
 
     async def execute(self, prompt, all_states=None, stream=False):
         messages = self.system_prompt + prompt
-        # print("\n\n---------messages:", messages, "\n\n\n")
+        print("\n\n---------messages:", messages, "\n\n\n")
         result = await self.llm_call_executor.execute(messages=messages, all_states=all_states, stream=stream, variable_replaced=True)
         result = result['execute_result']['result']
         all_answer = ""

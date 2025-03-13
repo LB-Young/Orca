@@ -79,12 +79,6 @@ init_params = {
     "tools": all_tools,
     "default_agent":{
         "flag":agent_flag,
-        "roles": {
-            "finance_expert": "金融专家",
-            "law_expert": "法律专家",
-            "medical_expert": "医疗专家",
-            "computer_expert": "计算机专家",
-                },
         "tools":"default",
         "agents":"default",
             }

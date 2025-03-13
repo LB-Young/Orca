@@ -22,7 +22,10 @@ from Orca import OrcaExecutor
 from Orca import all_tools
 from tools import other_tools
 
-orca_prompt_path = "/Users/liubaoyang/Documents/YoungL/project/Orca/examples/orca_manus/orca_manus_1.orca"
+# orca_prompt_path = "/Users/liubaoyang/Documents/YoungL/project/Orca/examples/orca_manus/orca_manus_1.orca"
+orca_prompt_path = "/Users/liubaoyang/Documents/YoungL/project/Orca/examples/multi_roles/multi_roles.orca"
+
+
 
 orca_prompt_path = abs_path[:abs_path.index("example")] + orca_prompt_path[orca_prompt_path.index("examples"):]
 
@@ -91,7 +94,6 @@ async def main():
             "tools": all_tools,
             "default_agent":{
                 "flag":agent_flag,
-                "roles": {},
                 "tools":"default",
                 "agents":"default",
                     }
