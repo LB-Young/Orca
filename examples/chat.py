@@ -22,8 +22,8 @@ from Orca import OrcaExecutor
 from Orca import all_tools
 from tools import other_tools
 
-# orca_prompt_path = "/Users/liubaoyang/Documents/YoungL/project/Orca/examples/orca_manus/orca_manus_1.orca"
-orca_prompt_path = "/Users/liubaoyang/Documents/YoungL/project/Orca/examples/multi_roles/multi_roles.orca"
+# orca_prompt_path = "examples/orca_manus/orca_manus_1.orca"
+orca_prompt_path = "examples/multi_roles/multi_roles.orca"
 
 
 

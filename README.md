@@ -75,7 +75,7 @@ Orca 内置了丰富的工具集，包括但不限于：
 - **内容分析**：PDF 处理、图像分析、表格提取
 - **多媒体处理**：YouTube 字幕提取、视频分析
 - **数据可视化**：流程图生成、Mermaid 图表
-- **通信工具**：邮件发送、微信公众号爬取
+- **通信工具**：邮件发送
 
 ## 项目结构
 
@@ -115,4 +115,4 @@ Orca/
 
 - 作者：YoungL
 - 邮箱：[lby15356@gmail.com](mailto:lby15356@gmail.com)
-- GitHub：[https://github.com/yourusername/Orca](https://github.com/yourusername/Orca)
+- GitHub：[https://github.com/LB-Young/Orca](https://github.com/LB-Young/Orca)

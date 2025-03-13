@@ -21,7 +21,7 @@ from Orca import OrcaExecutor
 from Orca import all_tools
 from tools import other_tools
 
-orca_prompt_path = "/Users/liubaoyang/Documents/YoungL/project/Orca/examples/paper_recommend/paper_recommend_new.orca"
+orca_prompt_path = "examples/paper_recommend/paper_recommend_new.orca"
 
 orca_prompt_path = abs_path[:abs_path.index("example")] + orca_prompt_path[orca_prompt_path.index("examples"):]
 
