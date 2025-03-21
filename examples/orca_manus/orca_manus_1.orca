@@ -4,5 +4,5 @@ variabes:
 orca:
 
 
-@agent_init(system_prompt="需要分析用户问题，然后使用工具收集尽量多的网页信息，最后基于收集的信息回答用户问题。", tools=["browser_use"])->new_agent
+@agent_init(system_prompt="需要分析用户问题，然后使用工具收集尽量多的网页信息，至少收集3个网页，最后基于收集的信息回答用户问题。注意收集完网页信息之后，请关闭浏览器。", tools=["browser_use"])->new_agent
 @new_agent($query) -> answer

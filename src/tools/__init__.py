@@ -25,8 +25,9 @@ from .browser_use_tool import BrowserUseTool
 other_tools = {
     "browser_use": {
         "object": BrowserUseTool,
-        "describe": """浏览器自动化工具，可执行多种浏览器操作，参数说明：
-        {"action": 要执行的浏览器操作，包括：'navigate': 导航到指定URL;'input_text': 在指定元素中输入文本;'screenshot': 捕获屏幕截图;'get_html': 获取页面HTML内容;'execute_js': 执行JavaScript代码;'scroll': 滚动页面;'switch_tab': 切换到指定标签页;'new_tab': 打开新标签页;'close_tab': 关闭当前标签页;'refresh': 刷新当前页面,
+        "describe": """浏览器自动化工具，可执行多种浏览器操作，浏览器一开始默认打开一个空页面，使用完毕后请关闭浏览器。
+        参数说明：
+        {"action": 要执行的浏览器操作，包括：'navigate': 导航到指定URL;'input_text': 在指定元素中输入文本;'click': 点击页面元素; 'screenshot': 捕获屏幕截图;'get_html': 获取页面HTML内容;'execute_js': 执行JavaScript代码;'scroll': 滚动页面;'switch_tab': 切换到指定标签页;'new_tab': 打开新标签页;'close_tab': 关闭当前标签页;'refresh': 刷新当前页面,
         "url": 用于'navigate'或'new_tab'操作的URL，默认为None,
         "index": 用于'click'或'input_text'操作的元素索引，默认为None,
         "text": 用于'input_text'操作的文本，默认为None,
@@ -91,7 +92,7 @@ other_tools = {
     },
     "paper_with_code_search_full":{
         "object":paper_with_code_search_full,
-        "describe":"读取paper with code 网站最新的论文，需要参数{'nums':需要读取的论文数目}",
+        "describe":"读取paper with code 网站最新的论文，需要参数{'nums':需要读取的论文数目, 'type': 读取类型，'top'表示读取最受欢迎的论文，'latest'表示读取最新的论文}",
     },
     "paper_with_code_search":{
         "object":paper_with_code_search,

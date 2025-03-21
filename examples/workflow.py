@@ -21,7 +21,7 @@ from Orca import OrcaExecutor
 from Orca import all_tools
 from tools import other_tools
 
-orca_prompt_path = "examples/paper_recommend/paper_recommend_new_full.orca"
+orca_prompt_path = "examples/paper_recommend/paper_recommend_new.orca"
 
 orca_prompt_path = abs_path[:abs_path.index("example")] + orca_prompt_path[orca_prompt_path.index("examples"):]
 
@@ -34,7 +34,8 @@ def load_api_key(platform):
 load_dotenv()
 default_api_key = load_api_key("aliyun")
 default_base_url = "https://dashscope.aliyuncs.com/compatible-mode/v1"
-default_llm_model_name = "deepseek-v3"
+default_llm_model_name = "qwen-max-2025-01-25"
+
 deepseek_api_key = load_api_key("deepseek")
 deepseek_model_base_url = "https://api.deepseek.com"
 deepseek_llm_model_name = "deepseek-chat"

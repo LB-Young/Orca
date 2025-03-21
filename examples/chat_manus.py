@@ -36,9 +36,9 @@ def load_api_key(platform):
     return api_dict.get(platform, None)
 
 # load_dotenv()
-default_api_key = load_api_key("aliyun")
-default_base_url = "https://dashscope.aliyuncs.com/compatible-mode/v1"
-default_llm_model_name = "deepseek-v3"
+default_api_key = load_api_key("openrouter")
+default_base_url = "https://openrouter.ai/api/v1"
+default_llm_model_name = "google/gemini-2.0-pro-exp-02-05:free"
 
 # default_api_key = load_api_key("siliconflow")
 # default_base_url = "https://api.siliconflow.cn/v1/chat/completions"
@@ -83,7 +83,7 @@ variables["query"] = []
 
 async def main():
     query = input('请输入问题：')
-    # query = "deepmind最近在研究什么"
+    # query = "anthropic和deepmind最近在研究什么"
     while len(query) != 0:
         variables["query"].append({"role":"user", "content":query})
         init_params = {
@@ -108,7 +108,7 @@ async def main():
             if execute_state == "processed":
                 cur_response += res['variables_pool'].get_variables('final_result')
                 if isinstance(res['variables_pool'].get_variables('final_result'), str) and len(res['variables_pool'].get_variables('final_result'))>300:
-                    print(res['variables_pool'].get_variables('final_result')[:2000] + "……", end="", flush=True)
+                    print(res['variables_pool'].get_variables('final_result')[:300] + "……", end="", flush=True)
                 else:
                     print(res['variables_pool'].get_variables('final_result'), end="", flush=True)
             else:

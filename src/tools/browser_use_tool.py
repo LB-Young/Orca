@@ -62,11 +62,21 @@ async def BrowserUseTool(action: str = "",
         global _browser, _context, _dom_service
         
         if '_browser' not in globals() or _browser is None:
-            _browser = BrowserUseBrowser(BrowserConfig(headless=False))
+            # 使用默认配置，只保留支持的参数
+            browser_config = BrowserConfig(headless=False)
+            _browser = BrowserUseBrowser(browser_config)
         
         if '_context' not in globals() or _context is None:
-            _context = await _browser.new_context()
-            _dom_service = DomService(await _context.get_current_page())
+            try:
+                _context = await _browser.new_context()
+                page = await _context.get_current_page()
+                _dom_service = DomService(page)
+            except Exception as e:
+                print(f"初始化上下文或DomService时出错: {e}")
+                # 尝试创建新的上下文和页面
+                _context = await _browser.new_context()
+                page = await _context.new_page()
+                _dom_service = DomService(page)
         
         return _context
     
@@ -77,9 +87,26 @@ async def BrowserUseTool(action: str = "",
             if action == "navigate":
                 if not url:
                     return {"error": "URL是'navigate'操作所必需的"}
-                await context.navigate_to(url)
-                time.sleep(5)
-                return {"output": f"已导航至 {url}"}
+                try:
+                    # 添加重试逻辑
+                    max_retries = 3
+                    for retry in range(max_retries):
+                        try:
+                            await context.navigate_to(url)
+                            state = await context.get_state()
+                            elements_string = state.element_tree.clickable_elements_to_string()
+                            return {"output": f"已导航至 {url}。\n新页面可交互元素: {elements_string}"}
+                        except Exception as e:
+                            if retry < max_retries - 1:
+                                print(f"导航到 {url} 失败，正在重试 ({retry+1}/{max_retries}): {e}")
+                                await asyncio.sleep(1)  # 在重试前等待
+                            else:
+                                raise  # 最后一次重试仍然失败时抛出异常
+                except Exception as e:
+                    # 如果所有重试都失败，记录详细错误并返回错误信息
+                    error_msg = f"导航到 {url} 失败: {str(e)}"
+                    print(error_msg)
+                    return {"error": error_msg}
             
             elif action == "click":
                 if index is None:
@@ -96,11 +123,22 @@ async def BrowserUseTool(action: str = "",
             elif action == "input_text":
                 if index is None or not text:
                     return {"error": "索引和文本是'input_text'操作所必需的"}
-                element = await context.get_dom_element_by_index(index)
-                if not element:
-                    return {"error": f"未找到索引为{index}的元素"}
-                await context._input_text_element_node(element, text)
-                return {"output": f"已在索引为{index}的元素中输入'{text}'"}
+                try:
+                    # 先获取页面状态，检查元素是否存在
+                    state = await context.get_state()
+                    elements_string = state.element_tree.clickable_elements_to_string()
+                    print(f"可交互元素: {elements_string}")
+                    
+                    element = await context.get_dom_element_by_index(index)
+                    if not element:
+                        return {"error": f"未找到索引为{index}的元素"}
+                    
+                    await context._input_text_element_node(element, text)
+                    return {"output": f"已在索引为{index}的元素中输入'{text}'"}
+                except Exception as e:
+                    error_msg = f"在元素{index}中输入文本失败: {str(e)}"
+                    print(error_msg)
+                    return {"error": error_msg}
             
             elif action == "screenshot":
                 screenshot = await context.take_screenshot(full_page=True)
@@ -108,7 +146,9 @@ async def BrowserUseTool(action: str = "",
             
             elif action == "get_html":
                 html = await context.get_page_html()
-                truncated = html[:2000] + "..." if len(html) > 2000 else html
+                state = await context.get_state()
+                elements_string = state.element_tree.clickable_elements_to_string()
+                truncated = f"当前页面可交互元素: {elements_string}\n\n" + "当前页面HTML内容: " + html[:2000] + "..." if len(html) > 2000 else html
                 return {"output": truncated}
             
             elif action == "execute_js":
@@ -213,37 +253,44 @@ if __name__ == "__main__":
     
     async def test_browser():
         # 导航到百度
-        result = await BrowserUseTool(action="navigate", url="https://www.baidu.com")
-        print("导航到百度首页结果:", result)
-        
-        # 使用JavaScript点击新闻按钮
-        # 通过选择器查找并点击新闻链接
-        js_script = """
-        // 查找包含"新闻"文本的链接并点击
-        const newsLinks = Array.from(document.querySelectorAll('a')).filter(a => a.textContent.includes('新闻'));
-        let clicked = false;
-        if (newsLinks.length > 0) {
-            newsLinks[0].click();
-            clicked = true;
-        }
-        clicked;
-        """
-        result = await BrowserUseTool(action="execute_js", script=js_script)
-        print("点击新闻按钮结果:", result)
-        
-        # 等待页面加载（使用JavaScript等待2秒）
-        await asyncio.sleep(2)
-        
-        # 获取点击后的页面状态
-        state = await BrowserUseTool(action="get_state")
-        print("点击后页面状态:", state)
-        
-        # 获取页面截图
-        screenshot = await BrowserUseTool(action="screenshot")
-        print("截图结果:", screenshot.get("output", ""))
-        
-        # 清理资源
-        await BrowserUseTool(action="cleanup")
+        try:
+            result = await BrowserUseTool(action="navigate", url="https://www.baidu.com")
+            print("导航到百度结果:", result)
+            
+            # 等待页面完全加载
+            await asyncio.sleep(2)
+            
+            # 获取页面状态，查看交互元素
+            state = await BrowserUseTool(action="get_state")
+            print("页面状态:", state)
+            
+            # 输入文本到搜索框（百度搜索框通常是前几个元素之一）
+            result = await BrowserUseTool(action="input_text", index=12, text="Browser Use Python")
+            print("在搜索框输入文本结果:", result)
+            
+            # 等待一会
+            await asyncio.sleep(10)
+            
+            # 执行简单的JavaScript
+            js_script = """
+            document.title;
+            """
+            result = await BrowserUseTool(action="execute_js", script=js_script)
+            print("执行JavaScript结果:", result)
+            
+            # 截图
+            screenshot = await BrowserUseTool(action="screenshot")
+            print("截图结果:", screenshot.get("output", ""))
+            
+            # 清理资源
+            await BrowserUseTool(action="cleanup")
+        except Exception as e:
+            print(f"测试过程中发生错误: {e}")
+            # 确保清理资源
+            try:
+                await BrowserUseTool(action="cleanup")
+            except:
+                pass
     
     # 运行测试
     asyncio.run(test_browser())

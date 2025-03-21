@@ -1,12 +1,3 @@
-a = {1:"1", 2:"2"}
+import math
 
-print(a)
-
-b = a.copy()
-
-del b[1]
-
-print(a)
-
-
-
+print(1/math.sqrt(1536))

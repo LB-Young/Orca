@@ -132,10 +132,8 @@ async def get_paper_detail(session, source_url, paper_url):
                 # 检查是否已缓存
                 cached_path = get_cached_pdf_path(pdf_url, save_dir)
                 if os.path.exists(cached_path):
-                    return None
                     print(f"使用缓存的PDF文件: {cached_path}")
                     paper_content = await read_pdf(cached_path)  # 从缓存读取内容
-                    
                 else:
                     # 下载论文
                     file_path = await download_pdf(pdf_url, save_dir)
@@ -152,7 +150,7 @@ async def get_paper_detail(session, source_url, paper_url):
         print(f"获取论文详情失败: {str(e)}")
         return None
 
-async def paper_with_code_search_full(type: str = "top", params_format: bool = False):
+async def paper_with_code_search_full(date: int = 10, type: str = "top", params_format: bool = False):
     """
     获取 Papers with Code 网站今日发布的论文信息
     
@@ -164,11 +162,12 @@ async def paper_with_code_search_full(type: str = "top", params_format: bool = F
         list: 论文信息列表，每个元素包含标题、作者、发表时间、摘要和star数
     """
     if params_format:
-        return ['type']
-    print("type:", type)
-    nums=50
+        return ['nums']
+        
     try:
         papers = []
+        if nums > 30:
+            nums = 30
         page = (nums-1) // 10 + 1
         cur_page = 1
         if type == "top":
