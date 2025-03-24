@@ -1,5 +1,4 @@
 from .web_search import google_search
-from .code_execute import code_execute
 from .dir_reader import dir_reader
 from .save_to_local import save2local
 from .condition_judge import condition_judge
@@ -8,10 +7,6 @@ all_tools = {
     "condition_judge":{
         "object":condition_judge,
         "describe":"判断当前的input属于哪一个条件类别，需要参数{'input':待判断的内容, 'categories':类别列表}",
-    },  
-    "code_execute":{
-        "object":code_execute,
-        "describe":"执行代码，需要参数{'code':待执行的函数, 'code_params':需要给待执行函数传递的执行参数}",
     }, 
     "google_search":{
         "object":google_search,

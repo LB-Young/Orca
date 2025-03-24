@@ -21,13 +21,19 @@ from .duckduckgo_websearch import duckduckgo_websearch
 from .jina_read_urls import jina_read_urls
 from .jina_search import jina_search
 from .browser_use_tool import BrowserUseTool
+from .cmd_execute import cmd_execute
+from .code_execute import code_execute
 
 other_tools = {
+    "code_execute": {
+        "object": code_execute,
+        "describe": "执行代码，需要参数{'code':待执行的函数, 'code_params':需要给待执行函数传递的执行参数}"
+    },
     "browser_use": {
         "object": BrowserUseTool,
         "describe": """浏览器自动化工具，可执行多种浏览器操作，浏览器一开始默认打开一个空页面，使用完毕后请关闭浏览器。
         参数说明：
-        {"action": 要执行的浏览器操作，包括：'navigate': 导航到指定URL;'input_text': 在指定元素中输入文本;'click': 点击页面元素; 'screenshot': 捕获屏幕截图;'get_html': 获取页面HTML内容;'execute_js': 执行JavaScript代码;'scroll': 滚动页面;'switch_tab': 切换到指定标签页;'new_tab': 打开新标签页;'close_tab': 关闭当前标签页;'refresh': 刷新当前页面,
+        {"action": 要执行的浏览器操作，包括：'navigate': 导航到指定URL;'input_text': 在指定元素中输入文本;'click': 点击页面元素; 'screenshot': 捕获屏幕截图;'get_html': 获取页面HTML内容;'execute_js': 执行JavaScript代码; 'scroll': 滚动页面;'switch_tab': 切换到指定标签页;'new_tab': 打开新标签页;'close_tab': 关闭当前标签页;'refresh': 刷新当前页面,
         "url": 用于'navigate'或'new_tab'操作的URL，默认为None,
         "index": 用于'click'或'input_text'操作的元素索引，默认为None,
         "text": 用于'input_text'操作的文本，默认为None,
@@ -126,6 +132,10 @@ other_tools = {
     "mermaid_add_picture": {
         "object": mermaid_add_picture,
         "describe": "在mermaid流程图中添加图片，需要参数{'mermaid_string':mermaid字符串, 'pic_path':图片路径}"
+    },
+    "cmd_execute": {
+        "object": cmd_execute,
+        "describe": "执行系统命令行，需要用户确认后执行，需要参数{'command':要执行的命令字符串}"
     }
 }
 
