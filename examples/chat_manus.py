@@ -24,7 +24,7 @@ from tools import other_tools
 
 orca_prompt_path = "examples/orca_manus/orca_manus_cmd.orca"
 # orca_prompt_path = "examples/multi_roles/multi_roles.orca"
-# 我想要做ocr场景的项目，请在modelscope帮我找一个模型，并且下载到/Users/liubaoyang/Documents/YoungL/models目录下。
+# 我想要做ocr场景的项目，请在huggingface帮我下载一个模型保存到/Users/liubaoyang/Documents/YoungL/models目录下
 
 
 orca_prompt_path = abs_path[:abs_path.index("example")] + orca_prompt_path[orca_prompt_path.index("examples"):]
@@ -36,7 +36,7 @@ def load_api_key(platform):
     return api_dict.get(platform, None)
 
 # load_dotenv()
-default_api_key = "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"
+default_api_key = load_api_key("openrouter")
 default_base_url = "https://openrouter.ai/api/v1"
 # default_llm_model_name = "anthropic/claude-3.7-sonnet"
 default_llm_model_name = "google/gemini-2.0-pro-exp-02-05:free"
