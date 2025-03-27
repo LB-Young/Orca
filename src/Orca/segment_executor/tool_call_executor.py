@@ -12,9 +12,8 @@ class ToolCallExecutor:
         if asyncio.iscoroutinefunction(function_object):
             try:
                 tool_result = await function_object(**function_input)
-            except:
-                breakpoint()
-                pass
+            except Exception as e:
+                raise e
         else:
             tool_result = function_object(**function_input)
         result = {

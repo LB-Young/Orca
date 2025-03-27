@@ -38,8 +38,8 @@ def load_api_key(platform):
 # load_dotenv()
 default_api_key = load_api_key("openrouter")
 default_base_url = "https://openrouter.ai/api/v1"
-# default_llm_model_name = "anthropic/claude-3.7-sonnet"
-default_llm_model_name = "google/gemini-2.0-pro-exp-02-05:free"
+default_llm_model_name = "anthropic/claude-3.7-sonnet"
+# default_llm_model_name = "deepseek/deepseek-chat-v3-0324:free"
 
 # default_api_key = load_api_key("siliconflow")
 # default_base_url = "https://api.siliconflow.cn/v1/chat/completions"
@@ -84,7 +84,7 @@ variables["query"] = []
 
 async def main():
     query = input('请输入问题：')
-    # query = "anthropic和deepmind最近在研究什么"
+    # query = "anthropic、deepmind和deepseek最近在研究什么新方向"
     while len(query) != 0:
         variables["query"].append({"role":"user", "content":query})
         init_params = {

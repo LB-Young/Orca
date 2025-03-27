@@ -1,0 +1,15 @@
+default_agent:False
+variabes:
+{
+    "file_path":"/Users/liubaoyang/Desktop/flowchart/GBT3620.pdf",
+    "pdf_page_images_path":"/Users/liubaoyang/Desktop/flowchart/pdf_page_images_path",
+    "pdf_page_image_layout_res_path":"/Users/liubaoyang/Desktop/flowchart/pdf_page_image_layout_res",
+    "picture_path":"/Users/liubaoyang/Desktop/flowchart/extract_out",
+    "mermaid_path":"/Users/liubaoyang/Desktop/flowchart/mermaid_pic.jpg",
+    "query":"高钙白钨矿选矿技术的流程"
+}
+orca:
+
+@pdf2pictures(将$file_path文件转换成图片保存到$pdf_page_images_path文件夹下) -> flag_content_1
+
+@images_layout_analysis(对$pdf_page_images_path文件夹下的所有图片中的内容做layout分析，结果保存到$pdf_page_image_layout_res_path目录下) -> flag_content_2
