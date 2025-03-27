@@ -56,7 +56,7 @@ class FunctionCallAnalysis:
                     self.config_dict = all_states['config'].get_configs()
                     self.llm_client = LLMClient(config_dict=self.config_dict)
                 if module_name in all_tools.keys():
-                    module_params_describe = all_tools[module_name]['describe']
+                    module_params_describe = all_tools[module_name]['object'].description
                 else:
                     module_params_describe = "没具体描述。"
                 extracted_params_prompt = f"我想要调用一个函数。关于调用这个函数的要求是：\n{module_params_describe}\n\n目前我已知的内容是：{params_content}，请提取出调用函数需要的参数值，仅以json形式返回，不要返回其它内容。"
@@ -86,7 +86,7 @@ class FunctionCallAnalysis:
                 all_tools[module_name]['object'] = workflow_content
                 extracted_params = params_dict
             else:
-                module_need_params = inspect.signature(all_tools[module_name]['object'])
+                module_need_params = all_tools[module_name]['object'].inputs
                 extracted_params = {}
                 if params_dict == {}:
                     raise Exception("Can not extract params for module_name!")

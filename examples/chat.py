@@ -19,8 +19,7 @@ import json
 import openai
 # from dotenv import load_dotenv
 from Orca import OrcaExecutor
-from Orca import all_tools
-from tools import other_tools
+from Orca import tools
 
 orca_prompt_path = "examples/orca_manus/orca_manus_1.orca"
 # orca_prompt_path = "examples/multi_roles/multi_roles.orca"
@@ -70,8 +69,6 @@ config = {
 with open(orca_prompt_path, "r", encoding="utf-8") as f:
     orca_file = f.read()
 
-all_tools.update(other_tools)
-
 content = orca_file.split("orca:", 1)[-1].strip()
 variables = json.loads(orca_file.split("orca:", 1)[0].strip().split("variabes:", 1)[-1].strip())
 
@@ -91,7 +88,7 @@ async def main():
             "memories": [],
             "debug_infos": [],
             "variables": variables,
-            "tools": all_tools,
+            "tools": tools,
             "default_agent":{
                 "flag":agent_flag,
                 "tools":"default",

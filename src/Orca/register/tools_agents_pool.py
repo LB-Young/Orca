@@ -9,18 +9,22 @@ class ToolsAgentsPool:
 
     def add_tools(self, tools):
         for key, value in tools.items():
-            if "type" not in value.keys():
-                value["type"] = "function"
-            self.tools[key] = value
+            tool_info = {
+                "type": "function",
+                "object": value
+            }
+            self.tools[key] = tool_info
     
     def init_agents(self, agents):
         self.agents = agents
 
     def init_tools(self, tools):
         for key, value in tools.items():
-            if "type" not in value.keys():
-                value["type"] = "function"
-            self.tools[key] = value
+            tool_info = {
+                "type": "function",
+                "object": value
+            }
+            self.tools[key] = tool_info
 
     def get_agents(self):
         return self.agents
