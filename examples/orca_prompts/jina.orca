@@ -1,0 +1,8 @@
+default_agent:False
+variabes:
+{}
+orca:
+
+
+@agent_init(system_prompt="需要读取‘https://www.aishu.cn/cn/’网页内容回答问题，如果当前网页无法回答，你可以获取这个网页的子链接中的内容。", tools=["jina_read_urls"])->new_agent
+@new_agent($query) -> answer

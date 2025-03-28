@@ -38,12 +38,12 @@ def load_api_key(platform):
 # load_dotenv()
 default_api_key = load_api_key("openrouter")
 default_base_url = "https://openrouter.ai/api/v1"
-default_llm_model_name = "anthropic/claude-3.7-sonnet"
+default_llm_model_name = "google/gemini-2.0-flash-exp:free"
 # default_llm_model_name = "deepseek/deepseek-chat-v3-0324:free"
 
 # default_api_key = load_api_key("siliconflow")
 # default_base_url = "https://api.siliconflow.cn/v1/chat/completions"
-# default_llm_model_name = "deepseek-ai/DeepSeek-V3"
+# default_llm_model_name = "deepseek-ai/DeepSeek-V3"2
 
 deepseek_api_key = load_api_key("deepseek")
 deepseek_model_base_url = "https://api.deepseek.com"

@@ -65,7 +65,10 @@ async def fetch_web_content(url: str, api_key: Optional[str] = None) -> str:
 
     # 缓存不存在，从Jina API获取
     jina_url = f"https://r.jina.ai/{url}"
-    headers = {}
+    headers = {
+        "X-Retain-Images": "none",
+        "X-Return-Format": "markdown"
+    }
     if api_key:
         headers["X-API-KEY"] = api_key
     
