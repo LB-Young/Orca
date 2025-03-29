@@ -2,6 +2,7 @@ import re
 import json
 from Orca.agents.agents import Agent
 from Orca.agents.agents_react import ReactAgent
+from Orca.agents.agents_planact import PlanActAgent
 from Orca.utils.variable_replace import replace_variable
 import logging
 
@@ -20,6 +21,8 @@ class AgentInitAnalysis:
         mode = params["mode"]
         if mode == "react":
             cur_agent = ReactAgent(tools, system_prompt)
+        elif mode == "planact":
+            cur_agent = PlanActAgent(tools, system_prompt)
         else:
             cur_agent = Agent(tools, system_prompt)
         agent_msg = {

@@ -4,7 +4,7 @@ from collections.abc import AsyncGenerator
 from Orca.segment_executor import *
 
 
-class ReactAgent:
+class PlanActAgent:
     def __init__(self, tools=None, system_prompt=None):
 
         self.system_prompt = system_prompt
@@ -94,9 +94,46 @@ class ReactAgent:
                 "complete_result": str(e)
             }
 
-    async def execute(self, prompt, all_states=None, stream=False):
+    async def plan(self, messages, all_states=None, stream=False):
+        """规划阶段：调用 LLM 制定执行计划"""
+        # 添加规划提示词
+        plan_prompt = """请为用户的问题制定一个详细的执行计划。
+        要求：
+        1. 将任务分解为具体的执行步骤
+        2. 每个步骤都要清晰明确
+        3. 以 JSON 数组格式返回，每个元素包含 step_number 和 description
+        4. 格式示例：[{"step_number": 1, "description": "第一步描述"}, ...]
+        
+        请直接返回 JSON 格式的计划，不要包含其他内容。"""
+        
+        # 调用 LLM 获取执行计划
+        llm_response = await self.llm_call_executor.execute(
+            messages=messages + [{"role": "user", "content": plan_prompt}],
+            all_states=all_states,
+            stream=stream
+        )
+        
+        # 从 LLM 响应中获取计划
+        response = llm_response['execute_result']['result']
+        
+        # 如果是流式响应，拼接完整响应
+        if isinstance(response, AsyncGenerator):
+            complete_response = ""
+            async for chunk in response:
+                complete_response += chunk
+            response = complete_response
+        
+        # 解析 JSON 格式的计划
+        try:
+            plan_list = json.loads(response)
+            return plan_list
+        except:
+            return [{"step_number": 1, "description": "无法解析计划，直接执行用户请求。"}]
+
+    async def react(self, prompt, all_states=None, stream=False):
         """执行 React 循环，以生成器形式返回结果"""
         # 初始化消息列表
+        yield "当前问题未生成计划，我将直接执行。" + "\n"
         messages = self.system_prompt + prompt
         
         # 最大尝试次数
@@ -110,13 +147,13 @@ class ReactAgent:
                 current_thought = complete_thought
                 # 生成思考过程的每个块
                 yield thought_chunk
-            
+            yield "\n"
             # 如果找到最终答案，生成结果并结束
             if "Final Answer:" in current_thought:
                 final_answer = current_thought.split("Final Answer:", 1)[1].strip()
                 yield final_answer
                 break
-            
+            yield "\n"
             # 行动阶段
             current_result = None
             async for action_state in self.act(current_thought, all_states):
@@ -143,6 +180,64 @@ class ReactAgent:
         
         # 如果达到最大尝试次数，生成失败信息
         yield "Failed to complete the task within maximum attempts."
+
+    async def step_react(self, step, messages, all_states=None, stream=False):
+        """执行单个步骤的思考和行动过程"""
+        # 添加当前步骤到消息历史
+        step_prompt = f"执行计划的第 {step['step_number']} 步：{step['description']}"
+        messages.append({"role": "user", "content": step_prompt})
+        
+        # 思考阶段
+        current_thought = ""
+        async for thought_chunk, complete_thought in self.think(messages, all_states, stream):
+            current_thought = complete_thought
+            yield current_thought
+        yield "\n"
+        
+        # 行动阶段
+        if "Final Answer:" not in current_thought:
+            async for action_state in self.act(current_thought, all_states):
+                if action_state["success"]:
+                    yield f"步骤 {step['step_number']} 执行结果：{action_state['result']}"
+                    yield "\n"
+                    current_result = action_state["complete_result"]
+                else:
+                    yield f"步骤 {step['step_number']} 执行错误：{action_state['error']}"
+                    yield "\n"
+                    current_result = action_state["complete_result"]
+                
+                # 更新消息历史
+                messages.append({"role": "assistant", "content": current_thought})
+                if current_result is not None:
+                    if isinstance(current_result, str) and current_result.startswith("Error:"):
+                        messages[-1]["content"] += f"\nError executing tool: {current_result}"
+                    else:
+                        messages[-1]["content"] += f"\nTool response: {current_result}"
+        else:
+            # 如果是最终答案，直接返回
+            final_answer = current_thought.split("Final Answer:", 1)[1].strip()
+            yield f"步骤 {step['step_number']} 结果：{final_answer}" + "\n"
+            messages.append({"role": "assistant", "content": current_thought})
+
+    async def execute(self, prompt, all_states=None, stream=False):
+        """执行带计划的任务"""
+        # 初始化消息列表
+        messages = self.system_prompt + prompt
+        
+        # 首先进行规划
+        plan_list = await self.plan(messages, all_states, stream)
+        yield "执行计划：\n" + "\n".join([f"{step['step_number']}. {step['description']}" for step in plan_list]) + "\n"
+        
+        if (len(plan_list) == 1) and (plan_list[0]['description'] == "无法解析计划，直接执行用户请求。"):
+            # 如果无法解析计划，使用 react 模式执行
+            async for result in self.react(prompt, all_states, stream):
+                yield result
+        else:
+            # 对每个计划步骤进行执行
+            for step in plan_list:
+                async for result in self.step_react(step, messages, all_states, stream):
+                    yield result
+                
 
     async def tool_run(self, tool_message, all_states=None):
         function_name, function_params = tool_message.split(":", 1)

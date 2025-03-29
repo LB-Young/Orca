@@ -21,7 +21,7 @@ import openai
 from Orca import OrcaExecutor
 from Orca import tools
 
-orca_prompt_path = "examples/orca_manus/orca_manus_cmd_react.orca"
+orca_prompt_path = "examples/orca_manus/orca_manus_cmd_planact.orca"
 # orca_prompt_path = "examples/multi_roles/multi_roles.orca"
 # 我想要做ocr场景的项目，请在huggingface帮我下载一个模型保存到/Users/liubaoyang/Documents/YoungL/models目录下
 
@@ -63,7 +63,7 @@ variables["query"] = []
 
 async def main():
     # query = input('请输入问题：')
-    query = "anthropic最近在研究什么新方向"
+    query = "anthropic和deepmind最近在研究什么新方向"
     while len(query) != 0:
         variables["query"].append({"role":"user", "content":query})
         init_params = {
