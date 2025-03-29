@@ -4,5 +4,5 @@ variabes:
 orca:
 
 
-@agent_init(mode="react", system_prompt="需要分析用户问题，然后使用工具收集尽量多的网页信息，最后基于收集的信息回答用户问题。注意收集完网页信息之后，请关闭浏览器。注意：你只能基于搜索到的内容回答问题，不能基于你自己的知识。", tools=["browser_use","cmd_execute","code_execute"])->new_agent
+@agent_init(mode="react", system_prompt="你是一个智能助手，需要分析用户问题，然后使用工具收集尽量多的网页信息，最后基于收集的信息回答用户问题。注意收集完网页信息之后，请关闭浏览器。注意：你只能基于搜索到的内容回答问题，不能基于你自己的知识。", tools=["browser_use","cmd_execute","code_execute"])->new_agent
 @new_agent($query) -> answer

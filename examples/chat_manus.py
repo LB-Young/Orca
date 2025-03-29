@@ -40,10 +40,6 @@ default_base_url = "https://openrouter.ai/api/v1"
 # default_llm_model_name = "anthropic/claude-3.7-sonnet"
 default_llm_model_name = "google/gemini-2.5-pro-exp-03-25:free"
 
-# default_api_key = load_api_key("siliconflow")
-# default_base_url = "https://api.siliconflow.cn/v1/chat/completions"
-# default_llm_model_name = "deepseek-ai/DeepSeek-V3"
-
 config = {
     "openai":{
         "api_key": default_api_key,
