@@ -40,20 +40,20 @@ class Agent:
         messages = self.system_prompt + prompt
         # print("\n\n---------messages:", messages, "\n\n\n")
         # breakpoint()
-        result = await self.llm_call_executor.execute(messages=messages, all_states=all_states, stream=stream, variable_replaced=True)
+        result = await self.llm_call_executor.execute(messages=messages, all_states=all_states, stream=stream)
         result = result['execute_result']['result']
         all_answer = ""
         tool_messages = ""
         tool_Flag = False
-        for chunk in result:
-            all_answer += chunk.choices[0].delta.content
-            yield chunk.choices[0].delta.content
+        async for chunk in result:
+            all_answer += chunk
+            yield chunk
             if tool_Flag:
-                tool_messages += chunk.choices[0].delta.content
+                tool_messages += chunk
                 continue
-            if ":" in chunk.choices[0].delta.content and "=>#" in all_answer:
+            if ":" in chunk and "=>#" in all_answer:
                 tool_Flag = True
-                tool_messages += chunk.choices[0].delta.content
+                tool_messages += chunk
                 # yield ": "
                 continue
 

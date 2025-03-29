@@ -47,7 +47,7 @@ class ReactAgent:
     async def think(self, messages, all_states=None, stream=False):
         """思考阶段：调用 LLM 分析当前状态并决定下一步行动"""
         # 调用 LLM 获取下一步行动
-        think_prompt = "你是一个AI助手，请根据当前状态和目标，思考下一步的行动。"
+        think_prompt = "请你根据当前问题处理的状态和目标，思考下一步应该做什么。"
         llm_response = await self.llm_call_executor.execute(
             messages=messages + [{"role": "user", "content": think_prompt}],
             all_states=all_states,

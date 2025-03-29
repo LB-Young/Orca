@@ -21,7 +21,7 @@ import openai
 from Orca import OrcaExecutor
 from Orca import tools
 
-orca_prompt_path = "examples/orca_manus/orca_manus_cmd_planact.orca"
+orca_prompt_path = "examples/orca_manus/orca_manus_cmd.orca"
 # orca_prompt_path = "examples/multi_roles/multi_roles.orca"
 # 我想要做ocr场景的项目，请在huggingface帮我下载一个模型保存到/Users/liubaoyang/Documents/YoungL/models目录下
 
@@ -38,7 +38,7 @@ def load_api_key(platform):
 default_api_key = load_api_key("openrouter")
 default_base_url = "https://openrouter.ai/api/v1"
 # default_llm_model_name = "anthropic/claude-3.7-sonnet"
-default_llm_model_name = "google/gemini-2.5-pro-exp-03-25:free"
+default_llm_model_name = "google/gemini-2.0-flash-exp:free"
 
 config = {
     "openai":{
@@ -63,7 +63,8 @@ variables["query"] = []
 
 async def main():
     # query = input('请输入问题：')
-    query = "anthropic和deepmind最近在研究什么新方向"
+    # query = "anthropic和deepmind最近在研究什么新方向"
+    query = "上海哪个区有最大的公园，这个区2024年gdp是多少，排在上海各个区的第几名？"
     while len(query) != 0:
         variables["query"].append({"role":"user", "content":query})
         init_params = {

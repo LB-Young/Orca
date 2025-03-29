@@ -18,7 +18,7 @@ class AgentInitAnalysis:
         system_prompt = params["system_prompt"]
         tools = params["tools"]
         model = params["model"]
-        mode = params["mode"]
+        mode = params.get("mode", "chat")
         if mode == "react":
             cur_agent = ReactAgent(tools, system_prompt)
         elif mode == "planact":
