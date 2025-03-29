@@ -55,6 +55,7 @@ class OpenAIClient(BaseLLMClient):
             
             if stream:
                 async for chunk in response:
+                    # print(chunk)
                     if chunk.choices[0].delta.content:
                         yield chunk.choices[0].delta.content
             else:
@@ -186,25 +187,28 @@ class LLMClient:
                 api_key=self.config["openai"]["api_key"],
                 base_url=self.config["openai"].get("base_url")
             )
+            self.model = self.config['openai']['model'] 
             
         # Anthropic
         if "anthropic" in self.config:
             self.clients["anthropic"] = AnthropicClient(
                 api_key=self.config["anthropic"]["api_key"]
             )
+            self.model = self.config['anthropic']['model']
             
         # Together
         if "together" in self.config:
             self.clients["together"] = TogetherClient(
                 api_key=self.config["together"]["api_key"]
             )
-            
+            self.model = self.config['together']['model']
         # Groq
         if "groq" in self.config:
             self.clients["groq"] = GroqClient(
                 api_key=self.config["groq"]["api_key"]
             )
-    
+            self.model = self.config['groq']['model']
+
     def _get_platform_from_model(self, model: str) -> str:
         """根据模型名称判断平台"""
         model = model.lower()
@@ -264,8 +268,7 @@ class LLMClient:
             stream = False  # 函数选择模式强制使用非流式
             
         # 获取模型名称
-        if not model:
-            model = self.config.get("default_model", "gpt-3.5-turbo")
+        model = self.model
             
         # 获取对应的平台
         platform = self._get_platform_from_model(model)
@@ -279,14 +282,15 @@ class LLMClient:
         
         # 收集完整响应（用于函数调用模式）
         complete_response = ""
-        
+        # print("messages:", messages)
         async for response in client.generate_completion(
             messages=messages,
             model=model,
             stream=stream,
             tools=tools,
             **kwargs
-        ):
+        ):  
+            # print("response:", list(response))
             if mode == "function":
                 complete_response += response
             else:

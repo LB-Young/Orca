@@ -94,7 +94,6 @@ async def main():
                     print(res['variables_pool'].get_variables('final_result'), end="", flush=True)
             else:
                 pass
-        
         while execute_state == "bp":
             mode = input("请输入运行模式：")
             new_init_params = {
