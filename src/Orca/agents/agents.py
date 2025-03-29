@@ -25,8 +25,10 @@ class Agent:
         if len(self.tool_describe) == 0:
             self.prompt_format = ""
         else:
-            self.tool_describe = "".join(self.tool_describe)
-            self.prompt_format = self.prompt_format.replace(r"{tools}", "TOOLS 使用说明\n你只能使用下列工具，不能捏造未列出的工具。\n\nTOOLS LIST:\n" + self.tool_describe + "\n\n")
+            self.tool_describe_content = ""
+            for index, tool_des in enumerate(self.tool_describe):
+                self.tool_describe_content += f"{index}. {tool_des}\n"
+            self.prompt_format = self.prompt_format.replace(r"{tools}", "TOOLS 使用说明\n你只能使用下列工具，不能捏造未列出的工具。\n\nTOOLS LIST:\n" + self.tool_describe_content + "\n\n")
 
         if self.prompt_format != "":
             self.system_prompt = [{"role":"user", "content":self.prompt_format}, {"role":"assistant", "content":"好的，我会严格遵循要求，触发一次工具调用之后立即停止作答，等待工具结果返回后继续。"}]
@@ -38,8 +40,8 @@ class Agent:
 
     async def execute(self, prompt, all_states=None, stream=False):
         messages = self.system_prompt + prompt
-        # print("\n\n---------messages:", messages, "\n\n\n")
-        # breakpoint()
+        print("\n\n\n\n\n\n\n\n---------messages:", messages, "\n\n\n\n\n\n\n\n\n")
+        breakpoint()
         result = await self.llm_call_executor.execute(messages=messages, all_states=all_states, stream=stream)
         result = result['execute_result']['result']
         all_answer = ""
@@ -66,7 +68,7 @@ class Agent:
             # if "请严格遵循用户最初的要求" in prompt[-1]["content"]:
             #     prompt = prompt[:-1]
             if len(str(result).strip()) > 0:
-                new_prompt = prompt + [{"role": "assistant", "content": all_answer}, {"role": "user", "content": "工具执行结果：```" + str(result) + "```"}]
+                new_prompt = prompt + [{"role": "assistant", "content": all_answer}, {"role": "user", "content": "工具执行结果：```" + str(result) + "\n\n执行结果如上，请判断是否符合预期，如果符合预期请继续执行，如果不符合预期请尝试重新调用或使用别的工具。```"}]
             else:
                 new_prompt = prompt + [{"role": "assistant", "content": all_answer}, {"role": "user", "content": "工具执行结果为空，请重新处理。"}]
             async for item in self.execute(prompt=new_prompt, all_states=all_states, stream=stream):
