@@ -9,6 +9,7 @@ from browser_use.browser.context import BrowserContext
 from browser_use.dom.service import DomService
 from .tool import Tool
 
+"""要执行的浏览器操作，包括：'navigate': 导航到指定URL;'input_text': 在指定元素中输入文本;'click': 点击页面元素; 'screenshot': 捕获屏幕截图;'get_html': 获取页面HTML内容;'execute_js': 执行JavaScript代码; 'scroll': 滚动页面;'switch_tab': 切换到指定标签页;'new_tab': 打开新标签页;'close_tab': 关闭当前标签页;'refresh': 刷新当前页面"""
 class BrowserUseTool(Tool):
     """浏览器自动化工具"""
     
@@ -19,7 +20,7 @@ class BrowserUseTool(Tool):
     inputs = {
         "action": {
             "type": "string",
-            "description": "要执行的浏览器操作，包括：'navigate': 导航到指定URL;'input_text': 在指定元素中输入文本;'click': 点击页面元素; 'screenshot': 捕获屏幕截图;'get_html': 获取页面HTML内容;'execute_js': 执行JavaScript代码; 'scroll': 滚动页面;'switch_tab': 切换到指定标签页;'new_tab': 打开新标签页;'close_tab': 关闭当前标签页;'refresh': 刷新当前页面",
+            "description": "要执行的浏览器操作，包括：'navigate': 导航到指定URL;'input_text': 在指定元素中输入文本;'click': 点击页面元素; ''get_html': 获取页面HTML内容;'execute_js': 执行JavaScript代码; 'scroll': 滚动页面;'switch_tab': 切换到指定标签页;'new_tab': 打开新标签页;'close_tab': 关闭当前标签页;'refresh': 刷新当前页面",
             "required": True
         },
         "url": {

@@ -1,7 +1,6 @@
 import json
 import ast
 from Orca.segment_executor import *
-from Orca.utils.variable_replace import replace_variable
 
 
 class Agent:
@@ -22,7 +21,7 @@ class Agent:
         self.tool_describe = []
         for key, value in tools.items():
             self.tools[key] = value["object"]
-            self.tool_describe.append(f"{key}: {value['describe']}\n")
+            self.tool_describe.append(f"{key}: {value['object'].description}\n" + "参数：" + str(value['object'].inputs) + "\n")
         if len(self.tool_describe) == 0:
             self.prompt_format = ""
         else:

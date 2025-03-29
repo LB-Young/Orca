@@ -1,218 +1,301 @@
-from openai import OpenAI
-from together import Together
+import os
+import json
+from typing import Optional, Dict, List, Union, AsyncGenerator
+from abc import ABC, abstractmethod
+import openai
+from openai import AsyncOpenAI
+import anthropic
+import together
 from groq import Groq
 import logging
 
 logger = logging.getLogger(__name__)
 
 
-class LLMClient:
-    def __init__(self, config_dict):
-        if config_dict['default_model_base_url'] != "https://api.siliconflow.cn/v1/chat/completions":
-            self.default_type = "openai"
-            self.default_client = OpenAI(api_key=config_dict["default_model_api_key"], base_url=config_dict['default_model_base_url'])
-            self.default_llm_model_name = config_dict['default_llm_model_name']
-        else:
-            self.default_type = "siliconflow"
-            self.siliconflow_key = config_dict["default_model_api_key"]
-            self.siliconflow_url = config_dict['default_model_base_url']
-            self.siliconflow_model_name = config_dict['default_llm_model_name']
+class BaseLLMClient(ABC):
+    """LLM客户端基类，定义通用接口"""
+    
+    @abstractmethod
+    async def generate_completion(self, 
+                                messages: List[Dict[str, str]], 
+                                model: str,
+                                stream: bool = False,
+                                tools: Optional[List[Dict]] = None,
+                                **kwargs) -> AsyncGenerator[str, None]:
+        """生成补全响应"""
+        pass
 
-        self.deepseek_client = OpenAI(api_key=config_dict["deepseek_chat_model_api_key"], base_url=config_dict['deepseek_chat_model_base_url'])
-        self.deepseek_llm_model_name = config_dict['deepseek_chat_llm_model_name'].split(",")
-        self.deepseek_code_llm_model_name = config_dict['deepseek_code_llm_model_name'].split(",")
-        
-        self.groq_client = Groq(api_key=config_dict["groq_api_key"])
-        self.groq_llm_model_name = config_dict['groq_llm_model_name'].split(",")
 
-        self.together_client = Together(api_key=config_dict["together_api_key"])
-        self.together_llm_model_name = config_dict['together_llm_model_name'].split(",")
-
-    async def get_client(self, prompt, model_name=None):
-        if self.default_type == "openai":
-            self.client = self.default_client
-            self.llm_model_name = self.default_llm_model_name
-            return
-        elif self.default_type == "siliconflow":
-            return None
-        if model_name is None:
-            self.client = None
-            self.llm_model_name = None
-            if self.default_llm_model_name.lower() in prompt.lower():
-                self.client = self.default_client
-                self.llm_model_name = self.default_llm_model_name
-            if self.client is None:
-                for model_name in self.deepseek_llm_model_name:
-                    if model_name.lower() in prompt.lower():
-                        self.client = self.deepseek_client
-                        self.llm_model_name = model_name
-                        break
-            if self.client is None:
-                for model_name in self.groq_llm_model_name:
-                    if model_name.lower() in prompt.lower():
-                        self.client = self.groq_client
-                        self.llm_model_name = model_name
-                        break
-            if self.client is None:
-                for model_name in self.together_llm_model_name:
-                    if model_name.lower() in prompt.lower():
-                        self.client = self.together_client
-                        self.llm_model_name = model_name
-                        break
-            if self.llm_model_name is None or self.client is None:
-                all_models_name = self.deepseek_llm_model_name + self.groq_llm_model_name + self.together_llm_model_name
-                model_choose_prompt = f"用户当前要求为：{prompt}\n用户已经配置好的模型是:{all_models_name}\n请在列表中选出用户想要使用的模型,如果没有符合条件的模型则使用{self.default_llm_model_name}。请直接返回选择的模型的名称，不要返回其它内容，格式如："+"{'model_name':''}"
-                # print("model_choose_prompt:",model_choose_prompt)
-                response = self.default_client.chat.completions.create(
-                model=self.default_llm_model_name,
-                messages=[
-                    {"role": "system", "content": "你是一个专家助手。"},
-                    {"role": "user", "content": model_choose_prompt},
-                ],
-                stream=False,
-                )
-                predict_model_name = response.choices[0].message.content
-                # print("predict_model_name:",predict_model_name)
-                if self.default_llm_model_name.lower() in predict_model_name.lower():
-                    self.client = self.default_client
-                    self.llm_model_name = self.default_llm_model_name
-                if self.client is None:
-                    for model_name in self.deepseek_llm_model_name:
-                        if model_name.lower() in predict_model_name.lower():
-                            self.client = self.deepseek_client
-                            self.llm_model_name = model_name
-                            break
-                if self.client is None:
-                    for model_name in self.groq_llm_model_name:
-                        if model_name.lower() in predict_model_name.lower():
-                            self.client = self.groq_client
-                            self.llm_model_name = model_name
-                            break
-                if self.client is None:
-                    for model_name in self.together_llm_model_name:
-                        if model_name.lower() in predict_model_name.lower():
-                            self.client = self.together_client
-                            self.llm_model_name = model_name
-                            break
-        else:
-            self.client = None
-            self.llm_model_name = None
-            for model_name in self.default_llm_model_name:
-                if model_name.lower() in prompt.lower():
-                    self.client = self.default_client
-                    self.llm_model_name = model_name
-                    break
-            if self.client is None:
-                for model_name in self.deepseek_llm_model_name:
-                    if model_name.lower() in prompt.lower():
-                        self.client = self.deepseek_client
-                        self.llm_model_name = model_name
-                        break
-            if self.client is None:
-                for model_name in self.groq_llm_model_name:
-                    if model_name.lower() in prompt.lower():
-                        self.client = self.groq_client
-                        self.llm_model_name = model_name
-                        break
-            if self.client is None:
-                for model_name in self.together_llm_model_name:
-                    if model_name.lower() in prompt.lower():
-                        self.client = self.together_client
-                        self.llm_model_name = model_name
-                        break
-        if self.client is None:
-            self.client = self.default_client
-            self.llm_model_name = self.default_llm_model_name
-
-    async def generate_answer(self, prompt=None, messages=None, tools=None, model_name=None, stream=False):
-        if messages is not None:
-            prompt = messages[-1]['content']
-        await self.get_client(prompt, model_name)
-        # print("prompt:", prompt)
-        # print("self.client:", self.client)
-        # print("self.llm_model_name:", self.llm_model_name)
-        if len(messages[-1]['content']) > 30000:
-            messages[-1]['content'] = messages[-1]['content'][-30000]
-
-        if self.default_type == "siliconflow":
-            import requests
-            payload = {
-                "model": self.siliconflow_model_name,
+class OpenAIClient(BaseLLMClient):
+    """OpenAI API客户端"""
+    def __init__(self, api_key: str, base_url: Optional[str] = None):
+        self.client = AsyncOpenAI(api_key=api_key, base_url=base_url)
+    
+    async def generate_completion(self, 
+                                messages: List[Dict[str, str]], 
+                                model: str,
+                                stream: bool = False,
+                                tools: Optional[List[Dict]] = None,
+                                **kwargs) -> AsyncGenerator[str, None]:
+        try:
+            # 准备请求参数
+            params = {
+                "model": model,
                 "messages": messages,
-                "stream": True,
-                "max_tokens": 512,
-                "stop": ["null"],
-                "temperature": 0.7,
-                "top_p": 0.7,
-                "top_k": 50,
-                "frequency_penalty": 0.5,
-                "n": 1,
-                "response_format": {"type": "text"},
+                "stream": stream,
+                **kwargs
             }
-            headers = {
-                "Authorization": f"Bearer {self.siliconflow_key}",
-                "Content-Type": "application/json"
-            }
-            response = requests.request("POST", self.siliconflow_url, json=payload, headers=headers)
-            print(response.text)
-            return response
-
-        if not stream:
-            if messages is None:
-                if tools is None:
-                    response = self.client.chat.completions.create(
-                        model=self.llm_model_name,
-                        messages=messages,
-                        stream=False,
-                    )
-                    return response.choices[0].message.content
-            else:
-                if tools is None:
-                    response = self.client.chat.completions.create(
-                        model=self.llm_model_name,
-                        messages=messages,
-                        stream=False,
-                    )
-                    return response.choices[0].message.content
-        else:
-            if messages is None:
-                if tools is None:
-                    response = self.client.chat.completions.create(
-                        model=self.llm_model_name,
-                        messages=messages,
-                        stream=True,
-                    )
-                    return response
-                else:
-                    response = self.client.chat.completions.create(
-                        model=self.llm_model_name,
-                        messages=messages,
-                        stream=False,
-                    )
-                    return response.choices[0].message.content
-            else:
-                if tools is None:
-                    response = self.client.chat.completions.create(
-                        model=self.llm_model_name,
-                        messages=messages,
-                        stream=True,
-                    )
-                    return response
             
+            # 如果提供了tools，添加到参数中
+            if tools:
+                params["tools"] = tools
+            
+            # 调用API
+            response = await self.client.chat.completions.create(**params)
+            
+            if stream:
+                async for chunk in response:
+                    if chunk.choices[0].delta.content:
+                        yield chunk.choices[0].delta.content
+            else:
+                if tools and response.choices[0].message.tool_calls:
+                    # 如果是工具调用，返回特定格式
+                    tool_call = response.choices[0].message.tool_calls[0]
+                    yield f"{tool_call.function.name}:{tool_call.function.arguments}"
+                else:
+                    # 普通响应
+                    yield response.choices[0].message.content
+                    
+        except Exception as e:
+            yield f"Error with OpenAI API: {str(e)}"
 
-    async def choose_function(self, prompt, tools, model_name=None):
-        await self.get_client(prompt, model_name)
-        logger.debug("self.client:", self.client)
-        logger.debug("self.llm_model_name:", self.llm_model_name)
-        response = self.client.chat.completions.create(
-            model=self.llm_model_name,
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant"},
-                {"role": "user", "content": prompt},
-            ],
-            stream=False,
-            tools=tools
-        )
-        function_name = response.choices[0].message.tool_calls[0].function.name
-        function_params = response.choices[0].message.tool_calls[0].function.arguments
-        return function_name, function_params
+
+class AnthropicClient(BaseLLMClient):
+    """Anthropic API客户端"""
+    def __init__(self, api_key: str):
+        self.client = anthropic.AsyncAnthropic(api_key=api_key)
+    
+    async def generate_completion(self, 
+                                messages: List[Dict[str, str]], 
+                                model: str,
+                                stream: bool = False,
+                                tools: Optional[List[Dict]] = None,
+                                **kwargs) -> AsyncGenerator[str, None]:
+        try:
+            # 转换消息格式为Anthropic格式
+            prompt = self._convert_messages_to_prompt(messages)
+            
+            response = await self.client.messages.create(
+                model=model,
+                messages=[{"role": "user", "content": prompt}],
+                stream=stream,
+                **kwargs
+            )
+            
+            if stream:
+                async for chunk in response:
+                    if chunk.content:
+                        yield chunk.content[0].text
+            else:
+                yield response.content[0].text
+                
+        except Exception as e:
+            yield f"Error with Anthropic API: {str(e)}"
+    
+    def _convert_messages_to_prompt(self, messages: List[Dict[str, str]]) -> str:
+        """将OpenAI格式的消息转换为Anthropic格式"""
+        converted = []
+        for msg in messages:
+            role = "Human" if msg["role"] == "user" else "Assistant"
+            converted.append(f"{role}: {msg['content']}")
+        return "\n".join(converted)
+
+
+class TogetherClient(BaseLLMClient):
+    """Together API客户端"""
+    def __init__(self, api_key: str):
+        self.client = together.Together(api_key)
+    
+    async def generate_completion(self, 
+                                messages: List[Dict[str, str]], 
+                                model: str,
+                                stream: bool = False,
+                                tools: Optional[List[Dict]] = None,
+                                **kwargs) -> AsyncGenerator[str, None]:
+        try:
+            response = await self.client.chat.completions.create(
+                model=model,
+                messages=messages,
+                stream=stream,
+                **kwargs
+            )
+            
+            if stream:
+                async for chunk in response:
+                    if chunk.choices[0].delta.content:
+                        yield chunk.choices[0].delta.content
+            else:
+                yield response.choices[0].message.content
+                
+        except Exception as e:
+            yield f"Error with Together API: {str(e)}"
+
+
+class GroqClient(BaseLLMClient):
+    """Groq API客户端"""
+    def __init__(self, api_key: str):
+        self.client = Groq(api_key=api_key)
+    
+    async def generate_completion(self, 
+                                messages: List[Dict[str, str]], 
+                                model: str,
+                                stream: bool = False,
+                                tools: Optional[List[Dict]] = None,
+                                **kwargs) -> AsyncGenerator[str, None]:
+        try:
+            response = await self.client.chat.completions.create(
+                model=model,
+                messages=messages,
+                stream=stream,
+                **kwargs
+            )
+            
+            if stream:
+                async for chunk in response:
+                    if chunk.choices[0].delta.content:
+                        yield chunk.choices[0].delta.content
+            else:
+                yield response.choices[0].message.content
+                
+        except Exception as e:
+            yield f"Error with Groq API: {str(e)}"
+
+
+class LLMClient:
+    """统一的LLM客户端接口"""
+    def __init__(self, config_dict: Dict):
+        self.config = config_dict
+        self.clients = {}
+        self._initialize_clients()
+        
+    def _initialize_clients(self):
+        """初始化各平台的客户端"""
+        # OpenAI
+        if "openai" in self.config:
+            self.clients["openai"] = OpenAIClient(
+                api_key=self.config["openai"]["api_key"],
+                base_url=self.config["openai"].get("base_url")
+            )
+            
+        # Anthropic
+        if "anthropic" in self.config:
+            self.clients["anthropic"] = AnthropicClient(
+                api_key=self.config["anthropic"]["api_key"]
+            )
+            
+        # Together
+        if "together" in self.config:
+            self.clients["together"] = TogetherClient(
+                api_key=self.config["together"]["api_key"]
+            )
+            
+        # Groq
+        if "groq" in self.config:
+            self.clients["groq"] = GroqClient(
+                api_key=self.config["groq"]["api_key"]
+            )
+    
+    def _get_platform_from_model(self, model: str) -> str:
+        """根据模型名称判断平台"""
+        model = model.lower()
+        if any(x in model for x in ["gpt", "azure"]):
+            return "openai"
+        elif "claude" in model:
+            return "anthropic"
+        elif "groq" in model:
+            return "groq"
+        elif any(x in model for x in ["llama", "mistral", "mixtral"]):
+            return "together"
+        else:
+            return "openai"  # 默认使用OpenAI
+    
+    async def generate_answer(self, 
+                            messages: Optional[List[Dict[str, str]]] = None,
+                            prompt: Optional[str] = None,
+                            model: Optional[str] = None,
+                            stream: bool = False,
+                            tools: Optional[List[Dict]] = None,
+                            mode: str = "chat",  # 新增 mode 参数，可选值：chat/code/function
+                            **kwargs) -> AsyncGenerator[str, None]:
+        """统一的生成接口
+        
+        Args:
+            messages: 消息历史
+            prompt: 单条提示语
+            model: 模型名称
+            stream: 是否使用流式输出
+            tools: 可用的工具列表
+            mode: 生成模式，可选值：
+                - chat: 普通对话模式
+                - code: 代码生成模式
+                - function: 函数选择模式
+            **kwargs: 其他参数
+        """
+        # 处理输入
+        if prompt and not messages:
+            messages = [{"role": "user", "content": prompt}]
+            
+        # 根据不同模式添加系统提示
+        if mode == "code":
+            system_message = {
+                "role": "system",
+                "content": "You are a helpful coding assistant. Please provide clear, well-commented code."
+            }
+            messages = [system_message] + (messages or [])
+        elif mode == "function":
+            if not tools:
+                yield "Error: Tools must be provided in function mode"
+                return
+            system_message = {
+                "role": "system",
+                "content": "You are a helpful assistant that chooses the appropriate function to call."
+            }
+            messages = [system_message] + (messages or [])
+            stream = False  # 函数选择模式强制使用非流式
+            
+        # 获取模型名称
+        if not model:
+            model = self.config.get("default_model", "gpt-3.5-turbo")
+            
+        # 获取对应的平台
+        platform = self._get_platform_from_model(model)
+        
+        if platform not in self.clients:
+            yield f"Error: Platform {platform} not configured"
+            return
+            
+        # 调用对应平台的客户端
+        client = self.clients[platform]
+        
+        # 收集完整响应（用于函数调用模式）
+        complete_response = ""
+        
+        async for response in client.generate_completion(
+            messages=messages,
+            model=model,
+            stream=stream,
+            tools=tools,
+            **kwargs
+        ):
+            if mode == "function":
+                complete_response += response
+            else:
+                yield response
+                
+        # 如果是函数调用模式，解析并返回结果
+        if mode == "function" and complete_response:
+            if ":" in complete_response:
+                function_name, function_params = complete_response.split(":", 1)
+                yield f"{function_name}:{function_params}"
+            else:
+                yield complete_response

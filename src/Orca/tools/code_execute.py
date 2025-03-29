@@ -7,7 +7,7 @@ class CodeExecuteTool(Tool):
     """代码执行工具"""
     
     name = "code_execute"  # 工具名称
-    description = "执行Python代码"  # 工具描述
+    description = "执行Python代码，python代码"  # 工具描述
     
     # 工具输入参数定义
     inputs = {

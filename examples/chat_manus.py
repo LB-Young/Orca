@@ -21,7 +21,7 @@ import openai
 from Orca import OrcaExecutor
 from Orca import tools
 
-orca_prompt_path = "examples/orca_manus/orca_manus_cmd.orca"
+orca_prompt_path = "examples/orca_manus/orca_manus_cmd_react.orca"
 # orca_prompt_path = "examples/multi_roles/multi_roles.orca"
 # 我想要做ocr场景的项目，请在huggingface帮我下载一个模型保存到/Users/liubaoyang/Documents/YoungL/models目录下
 
@@ -37,34 +37,19 @@ def load_api_key(platform):
 # load_dotenv()
 default_api_key = load_api_key("openrouter")
 default_base_url = "https://openrouter.ai/api/v1"
-default_llm_model_name = "anthropic/claude-3.7-sonnet"
-# default_llm_model_name = "deepseek/deepseek-chat-v3-0324:free"
+# default_llm_model_name = "anthropic/claude-3.7-sonnet"
+default_llm_model_name = "google/gemini-2.5-pro-exp-03-25:free"
 
 # default_api_key = load_api_key("siliconflow")
 # default_base_url = "https://api.siliconflow.cn/v1/chat/completions"
 # default_llm_model_name = "deepseek-ai/DeepSeek-V3"
 
-deepseek_api_key = load_api_key("deepseek")
-deepseek_model_base_url = "https://api.deepseek.com"
-deepseek_llm_model_name = "deepseek-chat"
-deepseek_code_llm_model_name = "deepseek-coder"
-groq_api_key = load_api_key("groq")
-groq_llm_model_name = "llama3-8b-8192"
-
-together_api_key = load_api_key("together")
-together_llm_model_name = "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo"
 config = {
-    "default_model_api_key": default_api_key,
-    "default_model_base_url": default_base_url,
-    "default_llm_model_name": default_llm_model_name,
-    "deepseek_chat_model_api_key": deepseek_api_key,
-    "deepseek_chat_model_base_url": deepseek_model_base_url,
-    "deepseek_chat_llm_model_name": deepseek_llm_model_name,
-    "deepseek_code_llm_model_name": deepseek_code_llm_model_name,
-    "groq_api_key": groq_api_key,
-    "groq_llm_model_name": groq_llm_model_name,
-    "together_api_key": together_api_key,
-    "together_llm_model_name": together_llm_model_name
+    "openai":{
+        "api_key": default_api_key,
+        "base_url": default_base_url,
+        "model": default_llm_model_name,
+    }
 }
 
 with open(orca_prompt_path, "r", encoding="utf-8") as f:
@@ -81,8 +66,8 @@ else:
 variables["query"] = []
 
 async def main():
-    query = input('请输入问题：')
-    # query = "anthropic、deepmind和deepseek最近在研究什么新方向"
+    # query = input('请输入问题：')
+    query = "anthropic最近在研究什么新方向"
     while len(query) != 0:
         variables["query"].append({"role":"user", "content":query})
         init_params = {

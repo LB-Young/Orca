@@ -7,7 +7,7 @@ class CmdExecuteTool(Tool):
     """命令行执行工具"""
     
     name = "cmd_execute"  # 工具名称
-    description = "执行系统命令行，需要用户确认后执行"  # 工具描述
+    description = "只能执行文件系统的命令，包括对文件、文件夹执行创建、修改、移动、拷贝、压缩、解压缩等操作。不能包含其他操作。"  # 工具描述
     
     # 工具输入参数定义
     inputs = {
