@@ -45,17 +45,13 @@ class OpenAIClient(BaseLLMClient):
                 "stream": stream,
                 **kwargs
             }
-            
             # 如果提供了tools，添加到参数中
             if tools:
                 params["tools"] = tools
-            
             # 调用API
             response = await self.client.chat.completions.create(**params)
-            
             if stream:
                 async for chunk in response:
-                    # print(chunk)
                     if chunk.choices[0].delta.content:
                         yield chunk.choices[0].delta.content
             else:
@@ -65,6 +61,7 @@ class OpenAIClient(BaseLLMClient):
                     yield f"{tool_call.function.name}:{tool_call.function.arguments}"
                 else:
                     # 普通响应
+                    print("response.choices[0].message.content:", response.choices[0].message.content)
                     yield response.choices[0].message.content
                     
         except Exception as e:
@@ -266,9 +263,15 @@ class LLMClient:
             }
             messages = [system_message] + (messages or [])
             stream = False  # 函数选择模式强制使用非流式
-            
-        # 获取模型名称
-        model = self.model
+        
+        if model is None:
+            # 获取模型名称
+            if isinstance(self.model, list):
+                model = model[0]
+            else:
+                model = self.model
+        else:
+            pass
             
         # 获取对应的平台
         platform = self._get_platform_from_model(model)
@@ -282,7 +285,7 @@ class LLMClient:
         
         # 收集完整响应（用于函数调用模式）
         complete_response = ""
-        # print("messages:", messages)
+        print("messages:", messages)
         async for response in client.generate_completion(
             messages=messages,
             model=model,

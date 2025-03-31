@@ -1,0 +1,87 @@
+[
+    {
+        "type": "function",
+        "function": {
+            "name": "cmd_execute",
+            "description": "只能执行文件系统的命令，包括对文件、文件夹执行创建、修改、移动、拷贝、压缩、解压缩等操作。不能包含其他操作。",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "command": {
+                        "type": "string",
+                        "description": "要执行的命令字符串"
+                    }
+                },
+                "required": [
+                    "command"
+                ]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "browser_use",
+            "description": "浏览器自动化工具，可执行多种浏览器操作，浏览器一开始默认打开一个空页面，使用完毕后请关闭浏览器。",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "action": {
+                        "type": "string",
+                        "description": "要执行的浏览器操作，包括："navigate": 导航到指定URL;"input_text": 在指定元素中输入文本;"click": 点击页面元素; ""get_html": 获取页面HTML内容;"execute_js": 执行JavaScript代码; "scroll": 滚动页面;"switch_tab": 切换到指定标签页;"new_tab": 打开新标签页;"close_tab": 关闭当前标签页;"refresh": 刷新当前页面"
+                    },
+                    "url": {
+                        "type": "string",
+                        "description": "用于"navigate"或"new_tab"操作的URL"
+                    },
+                    "index": {
+                        "type": "integer",
+                        "description": "用于"click"或"input_text"操作的元素索引"
+                    },
+                    "text": {
+                        "type": "string",
+                        "description": "用于"input_text"操作的文本"
+                    },
+                    "script": {
+                        "type": "string",
+                        "description": "用于"execute_js"操作的JavaScript代码"
+                    },
+                    "scroll_amount": {
+                        "type": "integer",
+                        "description": "用于"scroll"操作的滚动像素数（正数向下，负数向上）"
+                    },
+                    "tab_id": {
+                        "type": "integer",
+                        "description": "用于"switch_tab"操作的标签页ID"
+                    }
+                },
+                "required": [
+                    "action"
+                ]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "code_execute",
+            "description": "执行Python代码，python代码",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "string",
+                        "description": "待执行的Python代码"
+                    },
+                    "code_params": {
+                        "type": "object",
+                        "description": "需要给待执行函数传递的执行参数"
+                    }
+                },
+                "required": [
+                    "code"
+                ]
+            }
+        }
+    }
+]

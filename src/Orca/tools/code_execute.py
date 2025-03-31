@@ -17,7 +17,7 @@ class CodeExecuteTool(Tool):
             "required": True
         },
         "code_params": {
-            "type": "object",
+            "type": "string",
             "description": "需要给待执行函数传递的执行参数",
             "required": False
         }
@@ -42,7 +42,8 @@ class CodeExecuteTool(Tool):
         # 从输入中提取参数
         code = inputs.get("code", "")
         code_params = inputs.get("code_params", None)
-        
+        if "[" in code_params or "{" in code_params:
+            code_params = json.loads(code_params)
         # 参数校验
         if not code:
             raise Exception("代码不能为空")

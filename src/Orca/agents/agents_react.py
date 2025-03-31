@@ -47,7 +47,7 @@ class ReactAgent:
     async def think(self, messages, all_states=None, stream=False):
         """思考阶段：调用 LLM 分析当前状态并决定下一步行动"""
         # 调用 LLM 获取下一步行动
-        think_prompt = "请你根据当前问题处理的状态和目标，思考下一步应该做什么。"
+        think_prompt = "请你根据当前问题处理的状态和目标，思考下一步应该做什么。你可以选择一个工具来完成任务，也可以选择自己回答。请注意：1、优先使用合适的工具来完成任务。2、工具调用只能使用function_call功能返回。"
         llm_response = await self.llm_call_executor.execute(
             messages=messages + [{"role": "user", "content": think_prompt}],
             all_states=all_states,
@@ -100,7 +100,7 @@ class ReactAgent:
         messages = self.system_prompt + prompt
         
         # 最大尝试次数
-        max_attempts = 25
+        max_attempts = 15
         attempts = 0
         
         while attempts < max_attempts:
@@ -109,6 +109,7 @@ class ReactAgent:
             async for thought_chunk, complete_thought in self.think(messages, all_states, stream):
                 current_thought = complete_thought
                 # 生成思考过程的每个块
+                print("current_thought:", current_thought,"\n\n")
                 yield thought_chunk
             
             # 如果找到最终答案，生成结果并结束
@@ -123,11 +124,13 @@ class ReactAgent:
                 if action_state["success"]:
                     # 生成行动结果
                     yield str(action_state["result"])
+                    print("current_result:", action_state["complete_result"],"\n\n")
                     yield "\n"
                     current_result = action_state["complete_result"]
                 else:
                     # 生成错误信息
                     yield f"Error: {action_state['error']}"
+                    print("current_result:", action_state["complete_result"],"\n\n")
                     yield "\n"
                     current_result = action_state["complete_result"]
             
