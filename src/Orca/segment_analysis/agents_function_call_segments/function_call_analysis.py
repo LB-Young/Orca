@@ -55,22 +55,42 @@ class FunctionCallAnalysis:
                 else:
                     self.config_dict = all_states['config'].get_configs()
                     self.llm_client = LLMClient(config_dict=self.config_dict)
+
                 if module_name in all_tools.keys():
-                    module_params_describe = all_tools[module_name]['describe']
+                    tools_proerties = {}
+                    required_params = []
+                    for param_key, param_value in all_tools[module_name]["object"].inputs.items():
+                        tools_proerties[param_key] = {
+                                    "type": param_value['type'],
+                                    "description": param_value['description']
+                            }
+                        if param_value['required']:
+                            required_params.append(param_key)
+                    tools = [{
+                                "type": "function",
+                                "function": {
+                                    "name": all_tools[module_name]["object"].name,
+                                    "description": all_tools[module_name]["object"].description,
+                                    "parameters": {
+                                        "type": "object",
+                                        "properties": tools_proerties,
+                                        "required": required_params
+                                    },
+                                }
+                            }]
                 else:
-                    module_params_describe = "没具体描述。"
-                extracted_params_prompt = f"我想要调用一个函数。关于调用这个函数的要求是：\n{module_params_describe}\n\n目前我已知的内容是：{params_content}，请提取出调用函数需要的参数值，仅以json形式返回，不要返回其它内容。"
+                    raise Exception(f"Can not find tools for {module_name}!")
+
+                extracted_params_prompt = params_content
                 message = [{'role': 'user', 'content': extracted_params_prompt}]
-                extracted_params = await self.llm_client.generate_answer(messages = message)
-                if "```json" in extracted_params:
-                    extracted_params = extracted_params.strip().replace("```json","").replace("```", "")
-                try:
-                    params_dict = json.loads(extracted_params)
-                except:
-                    params_dict = await parse_string_to_dict(params_content)
-                    if len(params_dict) == 0:
-                        logger.error(extracted_params)
-                        raise Exception("Can not parser extracted_params to json")
+                extracted_params_generator = self.llm_client.generate_answer(messages = message, tools=tools)
+                extracted_params = ""
+                async for chunk in extracted_params_generator:
+                    extracted_params += chunk
+                extracted_params = extracted_params.split(":",1)[-1]
+
+                params_dict = json.loads(extracted_params)
+
                 for key, value in params_dict.items():
                     if isinstance(value, str):
                         value = await replace_variable(value, all_states)
@@ -86,12 +106,12 @@ class FunctionCallAnalysis:
                 all_tools[module_name]['object'] = workflow_content
                 extracted_params = params_dict
             else:
-                module_need_params = inspect.signature(all_tools[module_name]['object'])
+                module_need_params = all_tools[module_name]['object'].inputs
                 extracted_params = {}
                 if params_dict == {}:
                     raise Exception("Can not extract params for module_name!")
-                for name, param in module_need_params.parameters.items():
-                    extracted_params[name] = params_dict.get(name, param.default)
+                for name, param in module_need_params.items():
+                    extracted_params[name] = params_dict[name]
             if all_tools[module_name]['type'] == "workflow_init":
                 all_states['copy_variables_pool'] = copy.deepcopy(all_states['variables_pool'])
                 all_states['variables_pool'].init_variables(extracted_params)

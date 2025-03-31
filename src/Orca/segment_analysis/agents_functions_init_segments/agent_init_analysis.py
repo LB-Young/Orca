@@ -1,6 +1,8 @@
 import re
 import json
 from Orca.agents.agents import Agent
+from Orca.agents.agents_react import ReactAgent
+from Orca.agents.agents_planact import PlanActAgent
 from Orca.utils.variable_replace import replace_variable
 import logging
 
@@ -16,7 +18,13 @@ class AgentInitAnalysis:
         system_prompt = params["system_prompt"]
         tools = params["tools"]
         model = params["model"]
-        cur_agent = Agent(tools, system_prompt)
+        mode = params.get("mode", "chat")
+        if mode == "react":
+            cur_agent = ReactAgent(tools, system_prompt)
+        elif mode == "planact":
+            cur_agent = PlanActAgent(tools, system_prompt)
+        else:
+            cur_agent = Agent(tools, system_prompt)
         agent_msg = {
             "object":cur_agent,
             "describe":system_prompt
@@ -30,7 +38,7 @@ class AgentInitAnalysis:
         return result
 
     async def get_roles_tools(self, prompt_content, all_states):
-        contain_variables = ["tools", "system_prompt", "model"]
+        contain_variables = ["tools", "system_prompt", "model", "mode"]
 
         if len(prompt_content) == 0:
             res = {

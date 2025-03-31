@@ -1,7 +1,6 @@
 import json
 import ast
 from Orca.segment_executor import *
-from Orca.utils.variable_replace import replace_variable
 
 
 class Agent:
@@ -22,42 +21,44 @@ class Agent:
         self.tool_describe = []
         for key, value in tools.items():
             self.tools[key] = value["object"]
-            self.tool_describe.append(f"{key}: {value['describe']}\n")
+            param_describe = ""
+            for param_key, param_value in value['object'].inputs.items():
+                param_describe += f"{param_key}: {param_value['description']}\n"
+            self.tool_describe.append(f"{key}: {value['object'].description}\n" + "参数说明：" + param_describe + "\n")
         if len(self.tool_describe) == 0:
             self.prompt_format = ""
         else:
-            self.tool_describe = "".join(self.tool_describe)
-            self.prompt_format = self.prompt_format.replace(r"{tools}", "TOOLS 使用说明\n你只能使用下列工具，不能捏造未列出的工具。\n\nTOOLS LIST:\n" + self.tool_describe + "\n\n")
+            self.tool_describe_content = ""
+            for index, tool_des in enumerate(self.tool_describe):
+                self.tool_describe_content += f"{index}. {tool_des}\n"
+            self.prompt_format = self.prompt_format.replace(r"{tools}", "TOOLS 使用说明\n你只能使用下列工具，不能捏造未列出的工具。\n\nTOOLS LIST:\n" + self.tool_describe_content + "\n\n")
 
         if self.prompt_format != "":
-            self.system_prompt = [{"role":"user", "content":self.prompt_format}, {"role":"assistant", "content":"好的，我会严格遵循要求，触发一次工具调用之后立即停止作答，等待工具结果返回后继续。"}]
+            self.system_prompt = [{"role":"user", "content":self.prompt_format}, {"role":"assistant", "content":"好的，我会严格遵循要求，触发一次工具调用之后立即停止作答，等待用户提供工具结果后继续。"}]
         if system_prompt is not None:
-            self.system_prompt = [{"role":"user", "content":self.prompt_format}, {"role":"assistant", "content":"好的，我会严格遵循要求，触发一次工具调用之后立即停止作答，等待工具结果返回后继续。"}, {"role":"user", "content":system_prompt}]
+            self.system_prompt = [{"role":"user", "content":self.prompt_format}, {"role":"assistant", "content":"好的，我会严格遵循要求，触发一次工具调用之后立即停止作答，等待用户提供工具结果后继续。"}, {"role":"user", "content":system_prompt}]
 
         self.llm_call_executor = LLMCallExecutor()
         self.tool_call_executor = ToolCallExecutor()
 
     async def execute(self, prompt, all_states=None, stream=False):
         messages = self.system_prompt + prompt
-        # print("\n\n---------messages:", messages, "\n\n\n")
-        # breakpoint()
-        result = await self.llm_call_executor.execute(messages=messages, all_states=all_states, stream=stream, variable_replaced=True)
+        result = await self.llm_call_executor.execute(messages=messages, all_states=all_states, stream=stream)
         result = result['execute_result']['result']
         all_answer = ""
         tool_messages = ""
         tool_Flag = False
-        for chunk in result:
-            all_answer += chunk.choices[0].delta.content
-            yield chunk.choices[0].delta.content
+        async for chunk in result:
+            all_answer += chunk
+            yield chunk
             if tool_Flag:
-                tool_messages += chunk.choices[0].delta.content
+                tool_messages += chunk
                 continue
-            if ":" in chunk.choices[0].delta.content and "=>#" in all_answer:
+            if ":" in chunk and "=>#" in all_answer:
                 tool_Flag = True
-                tool_messages += chunk.choices[0].delta.content
+                tool_messages += chunk
                 # yield ": "
                 continue
-
         if tool_Flag:
             tool_messages = all_answer.split("=>#")[-1]
             result = await self.tool_run(tool_message=tool_messages, all_states=all_states)
@@ -75,11 +76,20 @@ class Agent:
 
     async def re_params_extract(self, params_content):
         params_content = params_content.strip()
+        if params_content[0] == "{":
+            params_content = params_content[1:]
+        if params_content[-1] == "}":
+            params_content = params_content[:-1]
         params = {}
         for param in params_content.split(","):
             param = param.strip()
             key, value = param.split(":", 1)
-            params[key.strip()] = value.strip()
+            tmp_value = value.strip()
+            if tmp_value[-1] in ["'", '"']:
+                tmp_value = tmp_value[:-1]
+            if tmp_value[0] in ["'", '"']:
+                tmp_value = tmp_value[1:]
+            params[key.strip()] = tmp_value.strip()
         return params
 
     async def params_extract(self, params_content):
@@ -133,7 +143,7 @@ class Agent:
         function_params_json = await self.params_extract(function_params)
         if isinstance(function_params_json, str):
             return function_params_json
-        
+    
         execute_result = await self.tool_call_executor.execute(self.tools[function_name], function_params_json, all_states)
         result = execute_result['execute_result']['result']
         return result

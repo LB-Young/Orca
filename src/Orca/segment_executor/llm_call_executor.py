@@ -1,7 +1,8 @@
-from pydantic import BaseModel
-from Orca.utils.variable_replace import replace_variable
-from Orca.segment_executor.llm_client import LLMClient
 import logging
+from pydantic import BaseModel
+from typing import Optional, Dict, List, Union, Any
+from Orca.segment_executor.llm_client import LLMClient
+from Orca.utils.variable_replace import replace_variable
 
 logger = logging.getLogger(__name__)
 
@@ -11,41 +12,95 @@ class ModelMessage(BaseModel):
 
 
 class LLMCallExecutor:
+    """LLM调用执行器，负责处理LLM相关的调用"""
+    
     def __init__(self):
-        pass
+        self.all_states = None
+        self.config_dict = None
+        self.llm_client = None
         
-    async def execute(self, messages, all_states=None, stream=False, variable_replaced=False):
-        self.all_states = all_states
-        if all_states is None:
-            raise Exception("All_states is None, and not init LLMCallExecutor")
-        else:
-            self.config_dict = all_states['config'].get_configs()
+    async def execute(self, 
+                     messages: Union[str, List[Dict[str, str]]], 
+                     all_states: Optional[Dict[str, Any]] = None,
+                     stream: bool = False,
+                     tools: Optional[List[Dict]] = None,
+                     **kwargs) -> Dict:
+        """执行LLM调用
+        
+        Args:
+            messages: 消息内容，可以是字符串或消息列表
+            all_states: 全局状态
+            stream: 是否使用流式输出
+            tools: 可用的工具列表
+            mode: 生成模式，可选值：chat/code/function
+            **kwargs: 其他参数
+            
+        Returns:
+            Dict: 包含执行结果和更新后的状态
+        """
+        # 初始化状态
+        self.all_states = all_states or {}
+        if not self.config_dict:
+            if 'config' not in self.all_states:
+                raise Exception("Config not found in all_states")
+            self.config_dict = self.all_states['config'].get_configs()
             self.llm_client = LLMClient(config_dict=self.config_dict)
+            
+        # 处理消息格式
         if isinstance(messages, str):
-            messages = await replace_variable(messages, all_states)
-            messages = [{"role":"user", "content":messages}]
-        type = "prompt"
-        for item in messages[::-1]:
-            if item['role'] == "user":
-                type = await self.judge_prompt_type(item['content'])
-                break
-        if type == "prompt":
-            response = await self.llm_client.generate_answer(messages=messages, stream=stream)
-        elif type == "code":
-            response = await self.llm_client.generate_code(messages=messages, stream=stream)
-        result = {
-            "execute_result": {
-                "result":response
-            },
-            "all_states":all_states
-        }
-        return result
+            # 替换变量
+            messages = await replace_variable(messages, self.all_states)
+            messages = [{"role": "user", "content": messages}]
+            
+        # 获取模型名称
+        model = None
+        if 'model' in kwargs:
+            model = kwargs.pop('model')
+        
+        mode = "chat"
+        if tools is not None:
+            mode = "function"
+        tmp_mode = await self.judge_prompt_type(messages)
+        if tmp_mode is not None:
+            mode = tmp_mode
 
-    async def judge_prompt_type(self, prompt):
-        if prompt.strip().startswith("CODE:"):
-            return "code"
-        else:
-            return "prompt"
+        # 调用LLM
+        try:
+            response = self.llm_client.generate_answer(
+                messages=messages,
+                model=model,
+                stream=stream,
+                tools=tools,
+                mode=mode,
+                **kwargs
+            )
+            
+            # 返回结果
+            return {
+                "execute_result": {
+                    "result": response
+                },
+                "all_states": self.all_states
+            }
+            
+        except Exception as e:
+            logger.error(f"Error executing LLM call: {str(e)}")
+            return {
+                "execute_result": {
+                    "result": f"Error: {str(e)}"
+                },
+                "all_states": self.all_states
+            }
+
+    async def judge_prompt_type(self, messages):
+        for message in messages[::-1]:
+            if message.get("role") == "user":
+                if message.get("content").strip().startswith("CODE:"):
+                    return "code"
+                else:
+                    return None
+                break
+        return None
 
 
 
