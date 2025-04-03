@@ -20,8 +20,8 @@ from dotenv import load_dotenv
 from Orca import OrcaExecutor
 from Orca import tools
 
-orca_prompt_path = "/Users/liubaoyang/Documents/YoungL/project/Orca/examples/orca_prompts/function.orca"
-
+# orca_prompt_path = "/Users/liubaoyang/Documents/YoungL/project/Orca/examples/orca_prompts/function.orca"
+orca_prompt_path = "/Users/liubaoyang/Documents/YoungL/project/Orca/examples/deep_research/deep_research.orca"
 orca_prompt_path = abs_path[:abs_path.index("example")] + orca_prompt_path[orca_prompt_path.index("examples"):]
 
 def load_api_key(platform):

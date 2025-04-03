@@ -9,6 +9,7 @@ orca:
 @paper_with_code_search_full("搜索排名最高的一些论文") -> papers(list)
 
 FOR $paper in $papers:
+
 对“$paper”中的内容用中文进行总结。
 要求：
 1、返回的内容包括:论文标题、论文链接、作者、研究团队、摘要总结、研究的问题、核心思路、实验的结果、以及研究现状和待解决问题。
@@ -34,6 +35,7 @@ https://arxiv.org/……
 """
 3、结果不使用```markdown```包裹，直接返回答案字符串即可。
 ->> paper_summaries(list)
+
 END
 
 @list_to_multiline_string("list_data"=$paper_summaries) -> prcessed_papers

@@ -271,7 +271,6 @@ class PlanActAgent:
                 async for result in self.step_react(step, messages, all_states, stream):
                     yield result
                     messages.append({"role": "assistant", "content": result})
-                    breakpoint()
                 
 
     async def tool_run(self, tool_message, all_states=None):

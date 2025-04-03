@@ -21,7 +21,7 @@ import openai
 from Orca import OrcaExecutor
 from Orca import tools
 
-orca_prompt_path = "examples/orca_manus/orca_manus_cmd_planact.orca"
+orca_prompt_path = "examples/orca_manus/orca_manus_cmd.orca"
 # orca_prompt_path = "examples/multi_roles/multi_roles.orca"
 # 我想要做ocr场景的项目，请在huggingface帮我下载一个模型保存到/Users/liubaoyang/Documents/YoungL/models目录下
 
@@ -39,9 +39,9 @@ default_api_key = load_api_key("openrouter")
 default_base_url = "https://openrouter.ai/api/v1"
 # default_llm_model_name = "anthropic/claude-3.7-sonnet"
 # default_llm_model_name = "google/gemini-2.0-flash-exp:free"
-# default_llm_model_name = "google/gemini-2.0-pro-exp-02-05:free"
+default_llm_model_name = "google/gemini-2.0-pro-exp-02-05:free"
 # default_llm_model_name = "deepseek/deepseek-chat-v3-0324:free"
-default_llm_model_name = "qwen/qwen-2.5-72b-instruct:free"
+# default_llm_model_name = "qwen/qwen-2.5-72b-instruct:free"
 
 config = {
     "openai":{

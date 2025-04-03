@@ -9,7 +9,7 @@ orca:
 
 @deepsearch_agent($query) -> search_content
 
-基于检索到的参考信息，回答用户的问题。
+(model="")基于检索到的参考信息，回答用户的问题。
 ## 要求
 - 你的解答需要入木三分；
 - 答案必须展现出思考的深度；

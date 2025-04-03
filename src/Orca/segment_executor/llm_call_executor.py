@@ -24,6 +24,7 @@ class LLMCallExecutor:
                      all_states: Optional[Dict[str, Any]] = None,
                      stream: bool = False,
                      tools: Optional[List[Dict]] = None,
+                     test_time_compute_type: Optional[str] = None,
                      **kwargs) -> Dict:
         """执行LLM调用
         
@@ -47,10 +48,36 @@ class LLMCallExecutor:
             self.llm_client = LLMClient(config_dict=self.config_dict)
             
         # 处理消息格式
+        processed_messages = []
         if isinstance(messages, str):
             # 替换变量
             messages = await replace_variable(messages, self.all_states)
-            messages = [{"role": "user", "content": messages}]
+            processed_messages = [{"role": "user", "content": messages}]
+        else:
+            memory = await messages.get_memory()
+            # 处理消息列表
+            for msg in memory:
+                if isinstance(msg, dict) and "role" in msg and "content" in msg:
+                    # 如果是标准的消息字典格式
+                    processed_messages.append({
+                        "role": msg["role"],
+                        "content": msg["content"]
+                    })
+                elif isinstance(msg, ModelMessage):
+                    # 如果是ModelMessage对象
+                    processed_messages.append({
+                        "role": msg.role,
+                        "content": msg.content
+                    })
+                elif hasattr(msg, "role") and hasattr(msg, "content"):
+                    # 如果是AgentMessage或其他具有role和content属性的对象
+                    processed_messages.append({
+                        "role": msg.role,
+                        "content": msg.content
+                    })
+                else:
+                    logger.warning(f"Skipping invalid message format: {msg}")
+                    continue
             
         # 获取模型名称
         model = None
@@ -60,18 +87,23 @@ class LLMCallExecutor:
         mode = "chat"
         if tools is not None:
             mode = "function"
-        tmp_mode = await self.judge_prompt_type(messages)
+        tmp_mode = await self.judge_prompt_type(processed_messages)
         if tmp_mode is not None:
             mode = tmp_mode
 
         # 调用LLM
         try:
-            response = self.llm_client.generate_answer(
-                messages=messages,
-                model=model,
-                stream=stream,
-                tools=tools,
-                mode=mode,
+            if test_time_compute_type == "BoN":
+                pass
+            elif test_time_compute_type in ["self-reflection", "self-refine"]:
+                pass
+            else:
+                response = self.llm_client.generate_answer(
+                    messages=processed_messages,  # 使用处理后的消息列表
+                    model=model,
+                    stream=stream,
+                    tools=tools,
+                    mode=mode,
                 **kwargs
             )
             
@@ -95,14 +127,13 @@ class LLMCallExecutor:
     async def judge_prompt_type(self, messages):
         for message in messages[::-1]:
             if message.get("role") == "user":
-                if message.get("content").strip().startswith("CODE:"):
+                content = message.get("content")
+                if isinstance(content, str) and content.strip().startswith("CODE:"):
                     return "code"
                 else:
                     return None
                 break
         return None
-
-
 
 async def ut():
     llm = LLMClient()

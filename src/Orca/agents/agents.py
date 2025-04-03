@@ -1,6 +1,8 @@
 import json
 import ast
 from Orca.segment_executor import *
+from Orca.memory.agent_memory import AgentMemory
+from Orca.message.agent_message import AgentMessage
 
 
 class Agent:
@@ -11,20 +13,25 @@ class Agent:
     # - 每一次触发了不同的tool之后，你需要停止作答，等待用户调用对应的tool处理之后，将tool的结果重新组织语言后再继续作答。
     # - 你不能一次输出两个工具调用的命令，如"=>#tool_name1: {key:value}, =>#tool_name2: {key:value}"，你需要先输出一个工具调用的命令，等待用户调用工具，结果返回后，再输出另一个工具调用的命令。
     # """
+
         self.prompt_format = """{tools}
     ## TOOLS USE
     - 当需要调用工具的时候，你需要使用"=>#tool_name: {key:value}"的格式来调用工具,其中参数为严格的json格式，例如"=>#send_email: {subject: 'Hello', content: 'This is a test email'}"。
     - 每一次回答，你只能调用一个工具，不能同时调用多个工具。
     """
-
+        self.system_prompt = system_prompt
         self.tools = {}
         self.tool_describe = []
+        # 初始化agent memory用于管理消息
+        self.agent_memory = AgentMemory()
+        
         for key, value in tools.items():
             self.tools[key] = value["object"]
             param_describe = ""
             for param_key, param_value in value['object'].inputs.items():
                 param_describe += f"{param_key}: {param_value['description']}\n"
             self.tool_describe.append(f"{key}: {value['object'].description}\n" + "参数说明：" + param_describe + "\n")
+            
         if len(self.tool_describe) == 0:
             self.prompt_format = ""
         else:
@@ -33,45 +40,140 @@ class Agent:
                 self.tool_describe_content += f"{index}. {tool_des}\n"
             self.prompt_format = self.prompt_format.replace(r"{tools}", "TOOLS 使用说明\n你只能使用下列工具，不能捏造未列出的工具。\n\nTOOLS LIST:\n" + self.tool_describe_content + "\n\n")
 
-        if self.prompt_format != "":
-            self.system_prompt = [{"role":"user", "content":self.prompt_format}, {"role":"assistant", "content":"好的，我会严格遵循要求，触发一次工具调用之后立即停止作答，等待用户提供工具结果后继续。"}]
-        if system_prompt is not None:
-            self.system_prompt = [{"role":"user", "content":self.prompt_format}, {"role":"assistant", "content":"好的，我会严格遵循要求，触发一次工具调用之后立即停止作答，等待用户提供工具结果后继续。"}, {"role":"user", "content":system_prompt}]
-
+        self.has_init_memory = False
         self.llm_call_executor = LLMCallExecutor()
         self.tool_call_executor = ToolCallExecutor()
 
-    async def execute(self, prompt, all_states=None, stream=False):
-        messages = self.system_prompt + prompt
-        result = await self.llm_call_executor.execute(messages=messages, all_states=all_states, stream=stream)
-        result = result['execute_result']['result']
-        all_answer = ""
-        tool_messages = ""
-        tool_Flag = False
-        async for chunk in result:
-            all_answer += chunk
-            yield chunk
-            if tool_Flag:
-                tool_messages += chunk
-                continue
-            if ":" in chunk and "=>#" in all_answer:
-                tool_Flag = True
-                tool_messages += chunk
-                # yield ": "
-                continue
+    async def init_memory(self):
+        breakpoint()
+        if self.prompt_format != "":
+            self.system_prompt = [{"role":"user", "content":self.prompt_format}, {"role":"assistant", "content":"好的，我会严格遵循要求，触发一次工具调用之后立即停止作答，等待用户提供工具结果后继续。"}]
+            # 将系统提示添加到memory中
+            await self.agent_memory.add_memory(AgentMessage(
+                role="user",
+                content=self.prompt_format,
+                message_type="user",
+                message_from="system",
+                message_to="assistant"
+            ))
+            await self.agent_memory.add_memory(AgentMessage(
+                role="assistant",
+                content="好的，我会严格遵循要求，触发一次工具调用之后立即停止作答，等待用户提供工具结果后继续。",
+                message_type="assistant",
+                message_from="assistant",
+                message_to=""
+            ))
+            
+        if self.system_prompt is not None:
+            self.system_prompt = [{"role":"user", "content":self.prompt_format}, {"role":"assistant", "content":"好的，我会严格遵循要求，触发一次工具调用之后立即停止作答，等待用户提供工具结果后继续。"}, {"role":"user", "content":self.system_prompt}]
+            # 将额外的系统提示添加到memory中
+            await self.agent_memory.add_memory(AgentMessage(
+                role="user",
+                content=self.system_prompt,
+                message_type="user",
+                message_from="user",
+                message_to=""
+            ))
+
+    async def execute(self, messages, all_states=None, stream=False, test_time_compute_type=None):
+        if not self.has_init_memory:
+            self.has_init_memory = True
+            await self.init_memory()
+        # 将用户提示添加到memory中
+        self.agent_memory.add_memory(messages)
+
+
+        if test_time_compute_type == "BoN":
+            pass
+        elif test_time_compute_type in ["self-reflection", "self-refine"]:
+            pass
+        else:
+            result = await self.llm_call_executor.execute(messages=self.agent_memory, all_states=all_states, stream=stream)
+            result = result['execute_result']['result']
+            all_answer = ""
+            tool_messages = ""
+            tool_Flag = False
+            async for chunk in result:
+                all_answer += chunk
+                yield chunk
+                if tool_Flag:
+                    tool_messages += chunk
+                    continue
+                if ":" in chunk and "=>#" in all_answer:
+                    tool_Flag = True
+                    tool_messages += chunk
+                    continue
+
+
+        # 将助手的回答添加到memory中
+        await self.agent_memory.add_memory(AgentMessage(
+            role="assistant",
+            content=all_answer,
+            message_type="assistant",
+            message_from="assistant",
+            message_to=""
+        ))
+        
         if tool_Flag:
             tool_messages = all_answer.split("=>#")[-1]
             result = await self.tool_run(tool_message=tool_messages, all_states=all_states)
+            
+            # 将工具调用结果添加到memory中
+            await self.agent_memory.add_memory(AgentMessage(
+                role="system",
+                content=str(result),
+                message_type="tool",
+                message_from="tool",
+                message_to=""
+            ))
+            
             yield "工具执行结果：```" + str(result) + "```\n\n"
-            # for item in str(result)+"\n":
-            #     yield item
-            # if "请严格遵循用户最初的要求" in prompt[-1]["content"]:
-            #     prompt = prompt[:-1]
+            assistant_msg = AgentMessage(
+                    role="assistant",
+                    content=all_answer,
+                    message_type="assistant",
+                    message_from="assistant",
+                    message_to="user"
+                )
             if len(str(result).strip()) > 0:
-                new_prompt = prompt + [{"role": "assistant", "content": all_answer}, {"role": "user", "content": "工具执行结果：```" + str(result) + "```"}]
+                # 创建新的messages并添加到memory中
+                user_msg = AgentMessage(
+                    role="user",
+                    content=f"工具执行结果：```{str(result)}```",
+                    message_type="tool",
+                    message_from="tool",
+                    message_to="assistant"
+                )
+                new_messages = messages + [
+                    assistant_msg,
+                    user_msg
+                ]
+                await self.agent_memory.add_memory(assistant_msg)
+                await self.agent_memory.add_memory(user_msg)
             else:
-                new_prompt = prompt + [{"role": "assistant", "content": all_answer}, {"role": "user", "content": "工具执行结果为空，请重新处理。"}]
-            async for item in self.execute(prompt=new_prompt, all_states=all_states, stream=stream):
+                # 创建新的messages并添加到memory中
+                assistant_msg = AgentMessage(
+                    role="assistant",
+                    content=all_answer,
+                    message_type="assistant",
+                    message_from="assistant",
+                    message_to="user"
+                )
+                user_msg = AgentMessage(
+                    role="user",
+                    content="工具执行结果为空，请重新处理。",
+                    message_type="tool",
+                    message_from="tool",
+                    message_to="assistant"
+                )
+                new_messages = messages + [
+                    assistant_msg,
+                    user_msg
+                ]
+                await self.agent_memory.add_memory(assistant_msg)
+                await self.agent_memory.add_memory(user_msg)
+                
+            async for item in self.execute(messages=new_messages, all_states=all_states, stream=stream):
                 yield item
 
     async def re_params_extract(self, params_content):
