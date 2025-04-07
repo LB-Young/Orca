@@ -25,7 +25,7 @@ class PaperWithCodeFullTool(Tool):
         },
         "nums": {
             "type": "integer",
-            "description": "需要读取的论文数目",
+            "description": "需要读取的论文数目，默认为30",
             "required": True
         }
     }
@@ -48,7 +48,7 @@ class PaperWithCodeFullTool(Tool):
     async def run(self, inputs: Dict[str, Any], properties: Dict[str, Any]) -> Union[str, Any]:
         # 从输入中提取参数
         type_param = inputs.get("type", "top")
-        nums = inputs.get("nums", 10)
+        nums = inputs.get("nums", 30)
         
         try:
             papers = await self._fetch_papers(type_param, nums)

@@ -82,13 +82,12 @@ class FunctionCallAnalysis:
                     raise Exception(f"Can not find tools for {module_name}!")
 
                 extracted_params_prompt = params_content
-                message = [{'role': 'user', 'content': extracted_params_prompt}]
+                message = [{'role': 'user', 'content': "问题："+ extracted_params_prompt + "\n要求：请直接调用工具，不要输出任何解释和反问。"}]
                 extracted_params_generator = self.llm_client.generate_answer(messages = message, tools=tools)
                 extracted_params = ""
                 async for chunk in extracted_params_generator:
                     extracted_params += chunk
                 extracted_params = extracted_params.split(":",1)[-1]
-
                 params_dict = json.loads(extracted_params)
 
                 for key, value in params_dict.items():
